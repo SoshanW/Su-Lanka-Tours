@@ -1,4 +1,4 @@
-// FastAutoplaySlider.jsx - Fast autoplay image slider without scroll effects
+// FastAutoplaySlider.jsx - Fast autoplay image slider with minimal 3D effect
 import React, { useEffect, useState, useRef } from 'react';
 import SectionTitle from './ui/SectionTitle';
 
@@ -47,7 +47,7 @@ const FastAutoplaySlider = () => {
     setTimeout(() => {
       setIsSliding(false);
       startAutoplay(); // Restart autoplay after transition
-    }, 600); // Reduced animation time
+    }, 350); // Faster animation time
   };
   
   // Navigate to next slide
@@ -86,7 +86,7 @@ const FastAutoplaySlider = () => {
     
     autoplayIntervalRef.current = setInterval(() => {
       nextSlide();
-    }, 3000); // Faster autoplay - every 3 seconds
+    }, 1800); // Faster autoplay - every 1.8 seconds
   };
   
   // Stop autoplay timer
@@ -196,7 +196,7 @@ const FastAutoplaySlider = () => {
           background: transparent;
           border: 0;
           overflow-x: hidden;
-          transition: color 0.5s ease;
+          transition: color 0.3s ease;
         }
         
         .slides-nav button:after {
@@ -207,18 +207,18 @@ const FastAutoplaySlider = () => {
           height: 1px;
           width: 0;
           background: #111;
-          transition: width 0.4s ease;
+          transition: width 0.3s ease;
         }
         
         .slides-nav button:hover {
           cursor: pointer;
           color: rgba(17, 17, 17, 0.75);
-          transition: color 0.5s ease;
+          transition: color 0.3s ease;
         }
         
         .slides-nav button:hover:after {
           width: 100%;
-          transition: width 0.4s ease;
+          transition: width 0.3s ease;
         }
         
         .slides-nav button:focus {
@@ -229,7 +229,7 @@ const FastAutoplaySlider = () => {
           pointer-events: none;
         }
         
-        /* Slides */
+        /* Slides - Added 3D pop effect */
         .slides {
           position: relative;
           display: block;
@@ -238,7 +238,11 @@ const FastAutoplaySlider = () => {
           max-width: 90%;
           margin: 0 auto;
           background: #fff;
-          transition: background 0.5s cubic-bezier(.99, 1, .92, 1);
+          transform: translateZ(0);
+          box-shadow: 
+            0 10px 30px rgba(0, 0, 0, 0.15), 
+            0 15px 35px rgba(0, 0, 0, 0.1);
+          transition: background 0.3s cubic-bezier(.99, 1, .92, 1);
         }
         
         .is-sliding .slides {
@@ -253,12 +257,12 @@ const FastAutoplaySlider = () => {
           position: absolute;
           width: 100%;
           height: 100%;
-          transition: z-index 0.6s ease;
+          transition: z-index 0.4s ease; /* Faster transition */
         }
         
         .slide.is-active {
           z-index: 19;
-          transition: z-index 0.6s ease;
+          transition: z-index 0.4s ease; /* Faster transition */
         }
         
         .slide__content {
@@ -316,25 +320,25 @@ const FastAutoplaySlider = () => {
           display: inline-block;
           transform: translate3d(0, 140%, 0);
           opacity: 0;
-          transition: transform 0.3s ease, opacity 0.5s ease;
+          transition: transform 0.2s ease, opacity 0.3s ease; /* Faster transition */
         }
         
         .title-line:nth-child(1) span {
-          transition-delay: 0.15s;
+          transition-delay: 0.1s; /* Faster transition */
         }
         
         .title-line:nth-child(2) span {
-          transition-delay: 0.3s;
+          transition-delay: 0.15s; /* Faster transition */
         }
         
         .is-active .title-line span {
           transform: translate3d(0, 0%, 0);
           opacity: 1;
-          transition: transform 0.4s cubic-bezier(.77, 0, .175, 1), opacity 0.1s ease;
+          transition: transform 0.3s cubic-bezier(.77, 0, .175, 1), opacity 0.1s ease; /* Faster transition */
         }
         
         .is-active .title-line:nth-of-type(2n) span {
-          transition-delay: 0.2s;
+          transition-delay: 0.15s; /* Faster transition */
         }
         
         .slide__figure {
@@ -345,12 +349,12 @@ const FastAutoplaySlider = () => {
           margin: 0 auto;
           height: 100%;
           width: 100%;
-          transition: transform 0.3s cubic-bezier(.19, 1, .22, 1);
+          transition: transform 0.25s cubic-bezier(.19, 1, .22, 1); /* Faster transition */
         }
         
         .is-sliding .slide__figure {
           transform: scale(0.8);
-          transition: transform 0.3s cubic-bezier(.19, 1, .22, 1);
+          transition: transform 0.25s cubic-bezier(.19, 1, .22, 1); /* Faster transition */
         }
         
         .slide__img {
@@ -363,13 +367,13 @@ const FastAutoplaySlider = () => {
           height: 0%;
           width: 100%;
           filter: grayscale(0%);
-          transition: height 0.6s 0.8s cubic-bezier(.19, 1, .22, 1), filter 0.3s ease;
+          transition: height 0.4s 0.5s cubic-bezier(.19, 1, .22, 1), filter 0.2s ease; /* Faster transition */
         }
         
         .is-active .slide__img {
           height: 100%;
           opacity: 1;
-          transition: height 0.4s 0.2s cubic-bezier(.77, 0, .175, 1), filter 0.3s ease;
+          transition: height 0.3s 0.1s cubic-bezier(.77, 0, .175, 1), filter 0.2s ease; /* Faster transition */
         }
         
         .is-sliding .slide__img {
