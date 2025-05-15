@@ -1,13 +1,8 @@
-// Contact.jsx
-import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useInView } from 'framer-motion';
-import anime from 'animejs/lib/anime.es.js';
-import emailjs from '@emailjs/browser';
+import React, { useState, useRef } from 'react';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import SectionTitle from './ui/SectionTitle';
 import Button from './ui/Button';
-import { FadeIn } from '../animations/fadeIn';
-import { SlideIn } from '../animations/slideIn';
 import { Phone, Mail, MapPin, Send, Check } from 'lucide-react';
 
 const Contact = () => {
@@ -26,36 +21,18 @@ const Contact = () => {
   });
   
   const formRef = useRef(null);
-  const sectionRef = useRef(null);
-  const isInView = useInView({
-    root: sectionRef,
+  const controls = useAnimation();
+  const [ref, inView] = useInView({
     threshold: 0.2,
     triggerOnce: true,
   });
   
-  useEffect(() => {
-    if (isInView) {
-      // Animate form elements when in view
-      anime({
-        targets: '.contact-animate-item',
-        opacity: [0, 1],
-        translateY: [20, 0],
-        easing: 'easeOutExpo',
-        duration: 800,
-        delay: anime.stagger(100, {start: 300}),
-      });
-      
-      // Animate contact info items
-      anime({
-        targets: '.contact-info-item',
-        opacity: [0, 1],
-        translateX: [-20, 0],
-        easing: 'easeOutExpo',
-        duration: 800,
-        delay: anime.stagger(150, {start: 500}),
-      });
+  // Handle animation when component is in view
+  React.useEffect(() => {
+    if (inView) {
+      controls.start('visible');
     }
-  }, [isInView]);
+  }, [controls, inView]);
   
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,48 +46,49 @@ const Contact = () => {
     e.preventDefault();
     setFormStatus({ submitting: true, submitted: false, error: null });
     
-    // Use EmailJS to send the form
-    emailjs.sendForm(
-      'YOUR_SERVICE_ID',  // Replace with your EmailJS service ID
-      'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
-      formRef.current,
-      'YOUR_PUBLIC_KEY'   // Replace with your EmailJS public key
-    )
-      .then((result) => {
-        console.log('Email sent successfully:', result.text);
-        setFormStatus({ submitting: false, submitted: true, error: null });
-        
-        // Reset form after successful submission
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          subject: '',
-          message: '',
-        });
-        
-        // Show success animation
-        anime({
-          targets: '.success-checkmark',
-          scale: [0, 1],
-          opacity: [0, 1],
-          easing: 'spring(1, 80, 10, 0)',
-          duration: 800,
-        });
-        
-        // Hide success message after 5 seconds
-        setTimeout(() => {
-          setFormStatus((prev) => ({ ...prev, submitted: false }));
-        }, 5000);
-      })
-      .catch((error) => {
-        console.error('Email sending failed:', error.text);
-        setFormStatus({ submitting: false, submitted: false, error: 'Failed to send message. Please try again.' });
+    // Simulate form submission
+    setTimeout(() => {
+      setFormStatus({ submitting: false, submitted: true, error: null });
+      
+      // Reset form after successful submission
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
       });
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setFormStatus((prev) => ({ ...prev, submitted: false }));
+      }, 5000);
+    }, 1500);
+  };
+  
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6
+      }
+    }
   };
   
   return (
-    <section id="contact" className="section bg-gray-50" ref={sectionRef}>
+    <section id="contact" className="section bg-gray-50" ref={ref}>
       <div className="container">
         <SectionTitle 
           title="Contact Us" 
@@ -119,12 +97,17 @@ const Contact = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-12">
           {/* Contact Form */}
-          <SlideIn direction="left" className="bg-white rounded-lg shadow-md p-6 lg:p-8">
+          <motion.div 
+            className="bg-white rounded-lg shadow-md p-6 lg:p-8"
+            initial={{ opacity: 0, x: -50 }}
+            animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
+            transition={{ duration: 0.8 }}
+          >
             <h3 className="text-xl font-bold text-primary mb-6">Send Us a Message</h3>
             
             {formStatus.submitted ? (
               <div className="bg-green-50 border border-green-200 rounded-md p-4 flex items-center">
-                <div className="success-checkmark mr-4 bg-green-100 rounded-full p-2">
+                <div className="mr-4 bg-green-100 rounded-full p-2">
                   <Check size={24} className="text-green-600" />
                 </div>
                 <div>
@@ -134,8 +117,13 @@ const Contact = () => {
               </div>
             ) : (
               <form ref={formRef} onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="contact-animate-item">
+                <motion.div 
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate={controls}
+                >
+                  <motion.div variants={itemVariants} className="contact-animate-item">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                       Your Name *
                     </label>
@@ -148,9 +136,9 @@ const Contact = () => {
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     />
-                  </div>
+                  </motion.div>
                   
-                  <div className="contact-animate-item">
+                  <motion.div variants={itemVariants} className="contact-animate-item">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                       Email Address *
                     </label>
@@ -163,11 +151,16 @@ const Contact = () => {
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     />
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="contact-animate-item">
+                <motion.div 
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate={controls}
+                >
+                  <motion.div variants={itemVariants} className="contact-animate-item">
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                       Phone Number
                     </label>
@@ -179,9 +172,9 @@ const Contact = () => {
                       onChange={handleChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     />
-                  </div>
+                  </motion.div>
                   
-                  <div className="contact-animate-item">
+                  <motion.div variants={itemVariants} className="contact-animate-item">
                     <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
                       Subject *
                     </label>
@@ -194,49 +187,57 @@ const Contact = () => {
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
                     />
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
                 
-                <div className="mb-6 contact-animate-item">
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                    Your Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows="6"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-                  ></textarea>
-                </div>
+                <motion.div 
+                  className="mb-6"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate={controls}
+                >
+                  <motion.div variants={itemVariants} className="contact-animate-item">
+                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                      Your Message *
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      rows="6"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                    ></textarea>
+                  </motion.div>
+                </motion.div>
                 
-                <div className="contact-animate-item">
-                  <Button 
-                    type="submit" 
-                    variant="primary" 
-                    size="lg"
-                    isFullWidth
-                    disabled={formStatus.submitting}
-                    className="flex items-center justify-center"
-                  >
-                    {formStatus.submitting ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={18} className="mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <motion.div variants={containerVariants} initial="hidden" animate={controls}>
+                  <motion.div variants={itemVariants} className="contact-animate-item">
+                    <Button 
+                      type="submit" 
+                      variant="primary" 
+                      size="lg"
+                      disabled={formStatus.submitting}
+                      className="flex items-center justify-center w-full"
+                    >
+                      {formStatus.submitting ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send size={18} className="mr-2" />
+                          Send Message
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
+                </motion.div>
                 
                 {formStatus.error && (
                   <div className="mt-4 text-red-500 text-sm">
@@ -245,46 +246,66 @@ const Contact = () => {
                 )}
               </form>
             )}
-          </SlideIn>
+          </motion.div>
           
           {/* Contact Info */}
-          <FadeIn direction="right" className="flex flex-col">
+          <motion.div 
+            className="flex flex-col"
+            initial={{ opacity: 0, x: 50 }}
+            animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
+            transition={{ duration: 0.8 }}
+          >
             <div className="bg-primary text-white rounded-lg shadow-md p-6 lg:p-8 mb-6">
               <h3 className="text-xl font-bold mb-6">Contact Information</h3>
               
               <div className="space-y-6">
-                <div className="contact-info-item flex items-start">
+                <motion.div 
+                  className="flex items-start contact-info-item"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                >
                   <div className="bg-white/10 rounded-full p-3 mr-4">
                     <Phone size={20} className="text-white" />
                   </div>
                   <div>
                     <h4 className="text-white/80 text-sm">Phone</h4>
-                    <p className="text-white font-medium">+94 76 123 4567</p>
+                    <p className="text-white font-medium">+94 77 446 9122</p>
                   </div>
-                </div>
+                </motion.div>
                 
-                <div className="contact-info-item flex items-start">
+                <motion.div 
+                  className="flex items-start contact-info-item"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                >
                   <div className="bg-white/10 rounded-full p-3 mr-4">
                     <Mail size={20} className="text-white" />
                   </div>
                   <div>
                     <h4 className="text-white/80 text-sm">Email</h4>
-                    <p className="text-white font-medium">info@sulankatours.com</p>
+                    <p className="text-white font-medium">sulankatours@gmail.com</p>
                   </div>
-                </div>
+                </motion.div>
                 
-                <div className="contact-info-item flex items-start">
+                <motion.div 
+                  className="flex items-start contact-info-item"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                >
                   <div className="bg-white/10 rounded-full p-3 mr-4">
                     <MapPin size={20} className="text-white" />
                   </div>
                   <div>
                     <h4 className="text-white/80 text-sm">Address</h4>
                     <p className="text-white font-medium">
-                      42 Galle Road, Colombo 03<br />
+                      232, Sadasiripura, Oruwala, Athurugiriya<br />
                       Sri Lanka
                     </p>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
             
@@ -327,9 +348,26 @@ const Contact = () => {
                 </div>
               </div>
             </div>
-          </FadeIn>
+          </motion.div>
         </div>
       </div>
+      
+      {/* CSS Fallbacks for animations */}
+      <style jsx>{`
+        .contact-animate-item {
+          opacity: 1; /* Ensure visibility even if animations fail */
+        }
+        
+        .contact-info-item {
+          opacity: 1; /* Ensure visibility even if animations fail */
+        }
+        
+        @media (max-width: 640px) {
+          .space-y-6 > div {
+            margin-bottom: 1.5rem;
+          }
+        }
+      `}</style>
     </section>
   );
 };

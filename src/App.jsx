@@ -1,6 +1,5 @@
-// App.jsx
-import React, { useEffect, useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom'; // Remove BrowserRouter import
 import { Helmet } from 'react-helmet-async';
 import IntroVideo from './components/IntroVideo';
 import Navbar from './components/Navbar';
@@ -13,6 +12,7 @@ function App() {
   const [videoEnded, setVideoEnded] = useState(false);
   const { isLoaded } = useAppContext();
   
+  // Preload images for better performance
   useEffect(() => {
     // Pre-load images for better performance after video ends
     const preloadImages = () => {
@@ -38,19 +38,17 @@ function App() {
         <meta name="description" content="Experience the beauty of Sri Lanka with Su Lanka Tours. Discover ancient temples, pristine beaches, wildlife, and more with our expert local guides." />
       </Helmet>
       
-      <IntroVideo onVideoEnd={() => setVideoEnded(true)} />
+      {!videoEnded && <IntroVideo onVideoEnd={() => setVideoEnded(true)} />}
       
-      {isLoaded && (
-        <div className={`app-container ${videoEnded ? 'opacity-100' : 'opacity-0'}`} 
-          style={{ transition: 'opacity 1s ease-in-out' }}>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/gallery" element={<FullGallery />} />
-          </Routes>
-          <Footer />
-        </div>
-      )}
+      <div className={`app-container ${videoEnded && isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+        style={{ transition: 'opacity 1s ease-in-out' }}>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/gallery" element={<FullGallery />} />
+        </Routes>
+        <Footer />
+      </div>
     </>
   );
 }

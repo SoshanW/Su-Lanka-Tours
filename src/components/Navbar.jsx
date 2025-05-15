@@ -1,11 +1,20 @@
-// Navbar.jsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { NAVIGATION_LINKS } from '../utils/constants';
-import { scrollToElement } from '../utils/helpers';
-import { useAppContext } from '../contexts/AppContext';
 import { Menu, X } from 'lucide-react';
+import { useAppContext } from '../contexts/AppContext';
+
+// Updated navigation links to include immersive-slider
+const NAVIGATION_LINKS = [
+  { name: "Home", to: "#home" },
+  { name: "About", to: "#about" },
+  { name: "Roadmap", to: "#roadmap" }, // Added Roadmap to navigation
+  { name: "Journey", to: "#immersive-slider" }, // Added new Journey section
+  { name: "Experiences", to: "#experiences" },
+  { name: "Gallery", to: "#gallery" },
+  { name: "Testimonials", to: "#testimonials" },
+  { name: "Contact", to: "#contact" },
+];
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -28,7 +37,13 @@ const Navbar = () => {
   const handleNavLinkClick = (e, sectionId) => {
     e.preventDefault();
     setActiveSection(sectionId);
-    scrollToElement(sectionId);
+    
+    // Scroll to element
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    
     setIsMobileMenuOpen(false);
   };
   
@@ -64,7 +79,7 @@ const Navbar = () => {
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-6">
           {NAVIGATION_LINKS.map((link) => (
             <a
               key={link.name}

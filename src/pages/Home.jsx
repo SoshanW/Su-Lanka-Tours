@@ -1,14 +1,13 @@
-// Home.jsx
 import React, { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import Hero from '../components/Hero';
 import About from '../components/About';
 import Roadmap from '../components/Roadmap';
+import ImmersiveSlider from '../components/ImmersiveSlider'; // Import the new component
 import Experiences from '../components/Experiences';
 import Gallery from '../components/Gallery';
 import Testimonials from '../components/Testimonials';
 import Contact from '../components/Contact';
-import { Helmet } from 'react-helmet-async';
-
 
 const Home = () => {
   useEffect(() => {
@@ -27,6 +26,7 @@ const Home = () => {
         <Hero />
         <About />
         <Roadmap />
+        <ImmersiveSlider /> {/* Added the new immersive slider between Roadmap and Experiences */}
         <Experiences />
         <Gallery />
         <Testimonials />

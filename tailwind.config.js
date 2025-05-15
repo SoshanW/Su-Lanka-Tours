@@ -1,4 +1,3 @@
-// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -8,16 +7,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#0a5c36",  // Dark green for Sri Lankan theme
-        secondary: "#f59e0b", // Amber for contrast
-        accent: "#d97706",   // Darker amber for accents
+        // Changed from green to blue colors
+        primary: "#0a4c8c",  // Dark blue instead of dark green
+        secondary: "#f59e0b", // Keeping amber for contrast
+        accent: "#d97706",   // Keeping darker amber for accents
         dark: "#1e293b",     // Slate dark for text
         light: "#f8fafc"     // Light background
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         serif: ['Merriweather', 'serif'],
-        display: ['Montserrat', 'sans-serif']
+        display: ['Montserrat', 'sans-serif'],
+        mono: ['"Space Mono"', 'monospace'] // Added for slider navigation
       },
       animation: {
         'fade-in': 'fadeIn 1s ease-in-out',

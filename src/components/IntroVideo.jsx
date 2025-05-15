@@ -1,4 +1,3 @@
-// IntroVideo.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import anime from 'animejs/lib/anime.es.js';

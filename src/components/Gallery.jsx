@@ -1,97 +1,97 @@
-// Gallery.jsx
-import React, { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect } from 'react';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import { Link } from 'react-router-dom';
-import anime from 'animejs/lib/anime.es.js';
 import SectionTitle from './ui/SectionTitle';
-import { FadeIn } from '../animations/fadeIn';
 import Button from './ui/Button';
-import { GALLERY_IMAGES } from '../utils/constants';
+
+// Using the constants directly to avoid import issues
+const GALLERY_IMAGES = [
+  {
+    id: 1,
+    src: "/images/gallery/gallery1.jpg",
+    alt: "Beach sunset in Mirissa",
+    category: "beaches",
+  },
+  {
+    id: 2,
+    src: "/images/gallery/gallery2.jpg",
+    alt: "Tea plantations in Nuwara Eliya",
+    category: "nature",
+  },
+  {
+    id: 3,
+    src: "/images/gallery/gallery3.jpg",
+    alt: "Traditional Sri Lankan dance performance",
+    category: "culture",
+  },
+];
 
 const Gallery = () => {
-  const galleryRef = useRef(null);
-  const imageRefs = useRef([]);
+  const controls = useAnimation();
+  const [ref, inView] = useInView({
+    threshold: 0.2,
+    triggerOnce: true
+  });
   
   useEffect(() => {
-    if (galleryRef.current) {
-      // Staggered animation for gallery images
-      const animateImages = () => {
-        anime({
-          targets: imageRefs.current,
-          opacity: [0, 1],
-          translateY: [60, 0],
-          scale: [0.9, 1],
-          easing: 'easeOutExpo',
-          duration: 1000,
-          delay: anime.stagger(150, {start: 300}),
-        });
-      };
-      
-      // Setup intersection observer for gallery
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              animateImages();
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.2 }
-      );
-      
-      observer.observe(galleryRef.current);
-      
-      return () => {
-        if (galleryRef.current) {
-          observer.unobserve(galleryRef.current);
-        }
-      };
+    if (inView) {
+      controls.start('visible');
     }
-  }, []);
+  }, [controls, inView]);
   
-  // Add hover animation for images
-  const handleImageHover = (index) => {
-    anime({
-      targets: imageRefs.current[index],
-      scale: 1.05,
-      duration: 400,
-      easing: 'easeOutQuad',
-    });
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3
+      }
+    }
   };
   
-  const handleImageLeave = (index) => {
-    anime({
-      targets: imageRefs.current[index],
-      scale: 1,
-      duration: 400,
-      easing: 'easeOutQuad',
-    });
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6
+      }
+    }
   };
   
   return (
-    <section id="gallery" className="section bg-gray-50" ref={galleryRef}>
+    <section id="gallery" className="section bg-gray-50" ref={ref}>
       <div className="container">
         <SectionTitle 
           title="Gallery" 
           subtitle="A glimpse of the breathtaking sights and experiences awaiting you in Sri Lanka" 
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-          {GALLERY_IMAGES.slice(0, 3).map((image, index) => (
-            <div 
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
+          variants={containerVariants}
+          initial="hidden"
+          animate={controls}
+        >
+          {GALLERY_IMAGES.map((image) => (
+            <motion.div 
               key={image.id}
               className="overflow-hidden rounded-lg shadow-md bg-white"
-              ref={(el) => (imageRefs.current[index] = el)}
-              onMouseEnter={() => handleImageHover(index)}
-              onMouseLeave={() => handleImageLeave(index)}
-              style={{ opacity: 0 }}
+              variants={itemVariants}
+              whileHover={{ scale: 1.03 }}
+              transition={{ duration: 0.3 }}
             >
               <div className="relative overflow-hidden group h-64">
                 <img
                   src={image.src}
                   alt={image.alt}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = `https://via.placeholder.com/600x400?text=${image.alt.replace(/ /g, '+')}`;
+                  }}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <span className="text-white font-medium text-lg">{image.alt}</span>
@@ -101,11 +101,16 @@ const Gallery = () => {
                 <h3 className="text-lg font-semibold text-primary">{image.alt}</h3>
                 <p className="text-gray-600 text-sm mt-1">Category: {image.category}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         
-        <FadeIn direction="up" delay={0.5} className="mt-12 text-center">
+        <motion.div 
+          className="mt-12 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
             These are just a few highlights from our gallery. Visit our full gallery to see more stunning images from across Sri Lanka.
           </p>
@@ -114,16 +119,7 @@ const Gallery = () => {
               View Full Gallery
             </Button>
           </Link>
-        </FadeIn>
-        
-        {/* Decorative elements */}
-        <motion.div
-          className="absolute -bottom-16 -right-16 w-64 h-64 bg-primary/5 rounded-full"
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.4 }}
-        />
+        </motion.div>
       </div>
     </section>
   );
