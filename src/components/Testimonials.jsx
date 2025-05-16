@@ -34,11 +34,13 @@ const TESTIMONIALS = [
 
 const EnhancedTestimonials = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [direction, setDirection] = useState(null);
+  const [direction, setDirection] = useState("right");
+  const [isAnimating, setIsAnimating] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const controls = useAnimation();
   const containerRef = useRef(null);
   const testimonialsRef = useRef(null);
+  const autoplayRef = useRef(null);
   
   // Intersection observer
   const [ref, inView] = useInView({
@@ -49,16 +51,15 @@ const EnhancedTestimonials = () => {
   useEffect(() => {
     if (inView) {
       controls.start('visible');
-      
-      // Setup testimonial rotation
-      const interval = setInterval(() => {
-        handleNext();
-      }, 6000);
-      
-      return () => clearInterval(interval);
+      startAutoplay();
     } else {
       controls.start('hidden');
+      stopAutoplay();
     }
+    
+    return () => {
+      stopAutoplay();
+    };
   }, [inView, controls]);
   
   // Handle mouse movement for 3D tilt effect
@@ -91,15 +92,64 @@ const EnhancedTestimonials = () => {
     };
   }, []);
   
+  // Start autoplay
+  const startAutoplay = () => {
+    if (autoplayRef.current) return;
+    
+    autoplayRef.current = setInterval(() => {
+      if (!isAnimating) {
+        handleNext();
+      }
+    }, 6000); // Change slide every 6 seconds
+  };
+  
+  // Stop autoplay
+  const stopAutoplay = () => {
+    if (autoplayRef.current) {
+      clearInterval(autoplayRef.current);
+      autoplayRef.current = null;
+    }
+  };
+  
   // Handle navigation
   const handleNext = () => {
-    setDirection('right');
-    setActiveIndex((prevIndex) => (prevIndex + 1) % TESTIMONIALS.length);
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    setDirection("right");
+    setActiveIndex((prev) => (prev + 1) % TESTIMONIALS.length);
+    
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 700);
   };
   
   const handlePrev = () => {
-    setDirection('left');
-    setActiveIndex((prevIndex) => (prevIndex - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    setDirection("left");
+    setActiveIndex((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+    
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 700);
+  };
+  
+  // Handle direct navigation
+  const handleDotClick = (index) => {
+    if (isAnimating || index === activeIndex) return;
+    
+    setIsAnimating(true);
+    setDirection(index > activeIndex ? "right" : "left");
+    setActiveIndex(index);
+    
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 700);
   };
   
   // Calculate 3D transform based on mouse position
@@ -142,33 +192,44 @@ const EnhancedTestimonials = () => {
     }
   };
   
+  // Fixed transition duration for consistent animations
+  const slideTransition = {
+    duration: 0.6,
+    ease: [0.25, 0.1, 0.25, 1]
+  };
+  
+  // Simplified slide variants for more reliable animations
   const slideVariants = {
     enter: (direction) => ({
       x: direction === 'right' ? 300 : -300,
       opacity: 0,
       scale: 0.8,
-      rotateY: direction === 'right' ? 15 : -15,
     }),
     center: {
       x: 0,
       opacity: 1,
       scale: 1,
-      rotateY: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.25, 0.1, 0.25, 1]
-      }
+      transition: slideTransition
     },
     exit: (direction) => ({
       x: direction === 'right' ? -300 : 300,
       opacity: 0,
       scale: 0.8,
-      rotateY: direction === 'right' ? -15 : 15,
-      transition: {
-        duration: 0.6,
-        ease: [0.25, 0.1, 0.25, 1]
-      }
+      transition: slideTransition
     })
+  };
+  
+  // Animation sequence for content elements
+  const contentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: 0.3,
+        duration: 0.4,
+      }
+    }
   };
   
   return (
@@ -228,9 +289,9 @@ const EnhancedTestimonials = () => {
           <div className="relative overflow-hidden rounded-2xl shadow-2xl transform-style-3d bg-gradient-to-br from-white to-gray-50">
             {/* 3D Animated Testimonial Carousel */}
             <div className="relative h-[450px] md:h-[400px] overflow-hidden transform-style-3d">
-              <AnimatePresence custom={direction} mode="wait">
+              <AnimatePresence initial={false} mode="wait" custom={direction}>
                 <motion.div 
-                  key={activeIndex}
+                  key={TESTIMONIALS[activeIndex].id}
                   className="absolute inset-0 p-8 flex flex-col md:flex-row items-center transform-style-3d"
                   custom={direction}
                   variants={slideVariants}
@@ -241,9 +302,9 @@ const EnhancedTestimonials = () => {
                   {/* Profile Image with 3D Effect */}
                   <motion.div 
                     className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 mb-6 md:mb-0 md:mr-8 relative transform-style-3d"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3, duration: 0.5 }}
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
                     style={{ 
                       transformStyle: 'preserve-3d',
                       transform: 'translateZ(20px)'
@@ -278,9 +339,9 @@ const EnhancedTestimonials = () => {
                   <div className="flex-grow transform-style-3d">
                     {/* Name and Rating with Sequential Animation */}
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4, duration: 0.5 }}
+                      variants={contentVariants}
+                      initial="hidden"
+                      animate="visible"
                       className="mb-4 transform-style-3d"
                       style={{ transformStyle: 'preserve-3d', transform: 'translateZ(15px)' }}
                     >
@@ -290,23 +351,16 @@ const EnhancedTestimonials = () => {
                       </div>
                     </motion.div>
                     
-                    {/* Testimonial Text with Typing Effect */}
+                    {/* Testimonial Text with Fade-in Effect */}
                     <motion.blockquote 
                       className="text-gray-700 italic relative transform-style-3d"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5, duration: 0.8 }}
+                      variants={contentVariants}
+                      initial="hidden"
+                      animate="visible"
                       style={{ transformStyle: 'preserve-3d', transform: 'translateZ(10px)' }}
                     >
-                      {/* Sequential text reveal animation */}
                       <div className="relative overflow-hidden">
-                        <motion.div
-                          initial={{ y: 20 }}
-                          animate={{ y: 0 }}
-                          transition={{ delay: 0.6, duration: 0.5 }}
-                        >
-                          "{TESTIMONIALS[activeIndex].testimonial}"
-                        </motion.div>
+                        <p>"{TESTIMONIALS[activeIndex].testimonial}"</p>
                       </div>
                     </motion.blockquote>
                   </div>
@@ -324,6 +378,7 @@ const EnhancedTestimonials = () => {
                 onClick={handlePrev}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
+                disabled={isAnimating}
               >
                 <ChevronLeft size={20} />
               </motion.button>
@@ -333,6 +388,7 @@ const EnhancedTestimonials = () => {
                 onClick={handleNext}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
+                disabled={isAnimating}
               >
                 <ChevronRight size={20} />
               </motion.button>
@@ -349,12 +405,10 @@ const EnhancedTestimonials = () => {
                   className={`w-3 h-3 rounded-full transition-all duration-500 ${
                     index === activeIndex ? 'bg-primary w-8' : 'bg-gray-300'
                   }`}
-                  onClick={() => {
-                    setDirection(index < activeIndex ? 'left' : 'right');
-                    setActiveIndex(index);
-                  }}
+                  onClick={() => handleDotClick(index)}
                   whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.9 }}
+                  disabled={isAnimating}
                 />
               ))}
             </div>
