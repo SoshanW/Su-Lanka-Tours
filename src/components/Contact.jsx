@@ -683,7 +683,8 @@ const Contact = () => {
       </div>
       
       {/* CSS for special effects */}
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{
+  __html:`
         /* 3D grid pattern for background */
         .bg-grid-pattern-contact {
           background-image: 
@@ -739,7 +740,7 @@ const Contact = () => {
             animation: none !important;
           }
         }
-      `}</style>
+      `}}></style>
     </section>
   );
 };

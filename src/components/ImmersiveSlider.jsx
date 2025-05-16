@@ -1,5 +1,7 @@
 // FastAutoplaySlider.jsx - Fast autoplay image slider with minimal 3D effect
 import React, { useEffect, useState, useRef } from 'react';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import SectionTitle from './ui/SectionTitle';
 
 const FastAutoplaySlider = () => {
@@ -8,6 +10,22 @@ const FastAutoplaySlider = () => {
   const [isSliding, setIsSliding] = useState(false);
   const autoplayIntervalRef = useRef(null);
   const sliderRef = useRef(null);
+  
+  // Animation controls for scroll-based animations
+  const controls = useAnimation();
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: false
+  });
+  
+  // Start/stop animations based on view
+  useEffect(() => {
+    if (inView) {
+      controls.start('visible');
+    } else {
+      controls.start('hidden');
+    }
+  }, [controls, inView]);
   
   // Slide data
   const slides = [
@@ -62,21 +80,26 @@ const FastAutoplaySlider = () => {
     goToSlide(prevIndex, 'prev');
   };
   
-  // Autoplay setup - start immediately on component mount
+  // Autoplay setup - start immediately on component mount and when in view
   useEffect(() => {
-    startAutoplay();
+    // Only start autoplay when in view
+    if (inView) {
+      startAutoplay();
+    } else {
+      stopAutoplay();
+    }
     
     return () => {
       stopAutoplay();
     };
-  }, []);
+  }, [inView]);
   
   // Restart autoplay after sliding completes
   useEffect(() => {
-    if (!isSliding) {
+    if (!isSliding && inView) {
       startAutoplay();
     }
-  }, [isSliding]);
+  }, [isSliding, inView]);
   
   // Start autoplay timer - fast speed
   const startAutoplay = () => {
@@ -117,26 +140,97 @@ const FastAutoplaySlider = () => {
     };
   }, []);
   
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        duration: 0.4,
+        when: "beforeChildren",
+        staggerChildren: 0.2
+      }
+    }
+  };
+  
+  const headerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.25, 0.1, 0.25, 1]
+      }
+    }
+  };
+  
+  const sliderVariants = {
+    hidden: { opacity: 0, scale: 0.95, y: 30 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.7,
+        ease: [0.25, 0.1, 0.25, 1],
+        delay: 0.3 // Delay slider appearance until after the title
+      }
+    }
+  };
+  
+  const navVariants = {
+    hidden: { opacity: 0, x: 20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.4,
+        ease: [0.25, 0.1, 0.25, 1],
+        delay: 0.6 // Appear last
+      }
+    }
+  };
+  
   return (
     <section 
+      ref={ref}
       id="immersive-slider" 
       className="relative py-16 overflow-hidden"
-      ref={sliderRef}
     >
-      <div className="container">
+      {/* Title appears first, separate from other components */}
+      <motion.div 
+        className="container mb-12"
+        variants={headerVariants}
+        initial="hidden"
+        animate={controls}
+      >
         <SectionTitle 
           title="Journey Through Sri Lanka" 
           subtitle="Experience the beauty and diversity of Sri Lanka through our immersive visual journey"
         />
-      </div>
+      </motion.div>
       
-      <div className={`slides ${isSliding ? 'is-sliding' : ''} mt-12`}>
-        <section className="slides-nav">
+      {/* Slider and navigation appear after title */}
+      <motion.div 
+        className={`slides ${isSliding ? 'is-sliding' : ''}`}
+        variants={sliderVariants}
+        initial="hidden"
+        animate={controls}
+        ref={sliderRef}
+      >
+        <motion.section 
+          className="slides-nav"
+          variants={navVariants}
+          initial="hidden"
+          animate={controls}
+        >
+        
           <nav className="slides-nav__nav">
             <button className="slides-nav__prev js-prev" onClick={prevSlide}>Prev</button>
             <button className="slides-nav__next js-next" onClick={nextSlide}>Next</button>
           </nav>
-        </section>
+        </motion.section>
 
         {slides.map((slide, index) => (
           <section 
@@ -156,10 +250,10 @@ const FastAutoplaySlider = () => {
             </div>
           </section>
         ))}
-      </div>
+      </motion.div>
       
       {/* Slider-specific styles */}
-      <style jsx>{`
+      <style>{`
         /* Slides Nav */
         .slides-nav {
           z-index: 99;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom'; // Remove BrowserRouter import
+import { Routes, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import IntroVideo from './components/IntroVideo';
 import Navbar from './components/Navbar';
@@ -12,12 +12,21 @@ function App() {
   const [videoEnded, setVideoEnded] = useState(false);
   const { isLoaded } = useAppContext();
   
-  // Preload images for better performance
+  // Prevent scrolling during video and preload key images
   useEffect(() => {
-    // Pre-load images for better performance after video ends
+    // Lock scrolling when video is playing
+    if (!videoEnded) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Re-enable scrolling when video ends
+      document.body.style.overflow = '';
+    }
+    
+    // Pre-load key images for better performance after video ends
     const preloadImages = () => {
       const imagesToPreload = [
         '/images/hero-bg.jpg',
+        '/images/logo.png',
         '/images/founder.jpg',
         '/images/attractions/sigiriya.jpg',
       ];
@@ -28,8 +37,14 @@ function App() {
       });
     };
     
+    // Call preload function
     preloadImages();
-  }, []);
+    
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [videoEnded]);
 
   return (
     <>

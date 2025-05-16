@@ -32,7 +32,7 @@ const GALLERY_IMAGES = [
   },
   {
     id: 4,
-    src: "/images/gallery/gallery1.jpg", // Reusing images for demo
+    src: "/images/gallery/gallery4.jpg", 
     alt: "Polonnaruwa ancient city ruins",
     category: "heritage",
     title: "Polonnaruwa",
@@ -40,7 +40,7 @@ const GALLERY_IMAGES = [
   },
   {
     id: 5,
-    src: "/images/gallery/gallery2.jpg", // Reusing images for demo
+    src: "/images/gallery/gallery5.jpg", 
     alt: "Stilt fishermen at sunset",
     category: "culture",
     title: "Stilt Fishing",
@@ -48,7 +48,7 @@ const GALLERY_IMAGES = [
   },
   {
     id: 6,
-    src: "/images/gallery/gallery3.jpg", // Reusing images for demo
+    src: "/images/gallery/gallery6.jpg", 
     alt: "Tropical rainforest waterfall",
     category: "nature",
     title: "Waterfall",
@@ -56,7 +56,7 @@ const GALLERY_IMAGES = [
   },
   {
     id: 7,
-    src: "/images/gallery/gallery1.jpg", // Reusing images for demo
+    src: "/images/gallery/gallery7.jpg", 
     alt: "Traditional Sri Lankan food",
     category: "cuisine",
     title: "Sri Lankan Cuisine",
@@ -64,7 +64,7 @@ const GALLERY_IMAGES = [
   },
   {
     id: 8,
-    src: "/images/gallery/gallery2.jpg", // Reusing images for demo
+    src: "/images/gallery/gallery8.jpg", 
     alt: "Train journey through tea plantations",
     category: "travel",
     title: "Ella Train",
@@ -72,7 +72,7 @@ const GALLERY_IMAGES = [
   },
   {
     id: 9,
-    src: "/images/gallery/gallery3.jpg", // Reusing images for demo
+    src: "/images/gallery/gallery9.jpg", 
     alt: "Whale watching in Mirissa",
     category: "wildlife",
     title: "Whale Watching",
@@ -80,7 +80,7 @@ const GALLERY_IMAGES = [
   },
   {
     id: 10,
-    src: "/images/gallery/gallery1.jpg", // Reusing images for demo
+    src: "/images/gallery/gallery10.jpg", 
     alt: "Sigiriya Rock Fortress",
     category: "heritage",
     title: "Sigiriya",

@@ -366,7 +366,8 @@ const About = () => {
       </div>
       
       {/* Additional styles for 3D effects */}
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{
+        __html:`
         /* 3D grid pattern for background */
         .bg-grid-pattern {
           background-image: 
@@ -384,7 +385,7 @@ const About = () => {
             transform: none !important;
           }
         }
-      `}</style>
+      `}}></style>
     </section>
   );
 };

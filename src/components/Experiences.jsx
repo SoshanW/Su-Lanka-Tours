@@ -470,7 +470,8 @@ const EnhancedExperienceSlider = () => {
       </div>
       
       {/* Essential styles for 3D effects */}
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{
+  __html:`
         .perspective {
           perspective: 2000px;
         }
@@ -508,7 +509,7 @@ const EnhancedExperienceSlider = () => {
             transform: none !important;
           }
         }
-      `}</style>
+      `}}></style>
     </section>
   );
 };
