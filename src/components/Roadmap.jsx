@@ -59,28 +59,33 @@ const EnhancedRoadmap = () => {
   
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.6, 1, 1, 0.6]);
   const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.8, 1, 1, 0.8]);
-  const y1 = useTransform(scrollYProgress, [0, 1], [100, -100]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [-50, 50]);
-  const rotate1 = useTransform(scrollYProgress, [0, 1], [10, -10]);
-  const rotate2 = useTransform(scrollYProgress, [0, 1], [-5, 5]);
+  const y1 = useTransform(scrollYProgress, [0, 1], [50, -50]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [-25, 25]);
+  const rotate1 = useTransform(scrollYProgress, [0, 1], [5, -5]);
+  const rotate2 = useTransform(scrollYProgress, [0, 1], [-2, 2]);
   
   useEffect(() => {
-    // Track mouse movement for global 3D effect
+    // Track mouse movement for global 3D effect with debouncing
+    let timeoutId;
     const handleMouseMove = (e) => {
-      const { clientX, clientY } = e;
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      
-      setMousePosition({
-        x: (clientX - centerX) / centerX,
-        y: (clientY - centerY) / centerY
-      });
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const { clientX, clientY } = e;
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        
+        setMousePosition({
+          x: (clientX - centerX) / centerX,
+          y: (clientY - centerY) / centerY
+        });
+      }, 10); // Small debounce to prevent rapid updates
     };
     
     window.addEventListener('mousemove', handleMouseMove);
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      clearTimeout(timeoutId);
     };
   }, []);
   
@@ -95,43 +100,37 @@ const EnhancedRoadmap = () => {
           strokeDashoffset: [anime.setDashoffset, 0],
           easing: 'easeInOutSine',
           duration: 2000,
+          delay: 200,
         });
       }
       
-      // Add 3D hover effect to step cards
+      // Add simplified 3D hover effect to step cards
       stepRefs.current.forEach((ref) => {
         if (!ref.current) return;
         
         const card = ref.current;
         
-        // Add mouse move event for card tilt
+        // Add mouse move event for card tilt with reduced movement
         const handleCardMouseMove = (e) => {
           const rect = card.getBoundingClientRect();
-          const cardX = e.clientX - rect.left - rect.width / 2;
-          const cardY = e.clientY - rect.top - rect.height / 2;
+          const cardCenterX = rect.left + rect.width / 2;
+          const cardCenterY = rect.top + rect.height / 2;
           
-          const rotateY = cardX * 0.03;
-          const rotateX = -cardY * 0.03;
+          // Calculate distance from center (normalized between -1 and 1)
+          const rotateY = ((e.clientX - cardCenterX) / (rect.width / 2)) * 2;
+          const rotateX = ((e.clientY - cardCenterY) / (rect.height / 2)) * -2;
           
-          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-          
-          // Dynamic lighting effect
-          const glare = card.querySelector('.card-glare');
-          if (glare) {
-            const percentX = (e.clientX - rect.left) / rect.width * 100;
-            const percentY = (e.clientY - rect.top) / rect.height * 100;
-            glare.style.background = `radial-gradient(circle at ${percentX}% ${percentY}%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 80%)`;
-            glare.style.opacity = '1';
-          }
+          // Apply with reduced intensity and smoothing
+          card.style.transform = `perspective(1000px) rotateX(${rotateX * 2}deg) rotateY(${rotateY * 2}deg)`;
         };
         
         const handleCardMouseLeave = () => {
-          card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-          
-          const glare = card.querySelector('.card-glare');
-          if (glare) {
-            glare.style.opacity = '0';
-          }
+          // Smooth transition back to normal
+          card.style.transition = 'transform 0.5s ease-out';
+          card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+          setTimeout(() => {
+            card.style.transition = '';
+          }, 500);
         };
         
         card.addEventListener('mousemove', handleCardMouseMove);
@@ -145,47 +144,6 @@ const EnhancedRoadmap = () => {
     }
   }, [controls, inView]);
   
-  // 3D hover effects for final marker
-  useEffect(() => {
-    const markerEl = document.getElementById('final-marker');
-    if (!markerEl) return;
-    
-    const handleMarkerMouseMove = (e) => {
-      const rect = markerEl.getBoundingClientRect();
-      const markerX = e.clientX - rect.left - rect.width / 2;
-      const markerY = e.clientY - rect.top - rect.height / 2;
-      
-      const rotateY = markerX * 0.2;
-      const rotateX = -markerY * 0.2;
-      
-      markerEl.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.1, 1.1, 1.1)`;
-    };
-    
-    const handleMarkerMouseLeave = () => {
-      markerEl.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-    };
-    
-    markerEl.addEventListener('mousemove', handleMarkerMouseMove);
-    markerEl.addEventListener('mouseleave', handleMarkerMouseLeave);
-    
-    return () => {
-      markerEl.removeEventListener('mousemove', handleMarkerMouseMove);
-      markerEl.removeEventListener('mouseleave', handleMarkerMouseLeave);
-    };
-  }, [inView]);
-  
-  // Calculate perspective transform based on mouse position
-  const getPerspectiveStyle = (depth = 10) => {
-    const { x, y } = mousePosition;
-    const rotateX = y * depth; // inverse for natural feel
-    const rotateY = -x * depth;
-    
-    return {
-      transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-      transition: 'transform 0.5s ease-out',
-    };
-  };
-  
   // Icon mapping - Updated to use available icons
   const getIcon = (iconName) => {
     const iconProps = { size: 24, className: "text-primary" };
@@ -198,7 +156,7 @@ const EnhancedRoadmap = () => {
       case 'briefcase':
         return <Briefcase {...iconProps} />;
       case 'palm-tree':
-        // Replace PalmTree with Leaf (or another available icon)
+        // Replace PalmTree with Leaf
         return <Leaf {...iconProps} />;
       case 'camera':
         return <Camera {...iconProps} />;
@@ -214,31 +172,30 @@ const EnhancedRoadmap = () => {
   };
   
   const cardVariants = {
-    hidden: { opacity: 0, y: 50, rotateX: 20 },
+    hidden: { opacity: 0, y: 20 },
     visible: (i) => ({
       opacity: 1,
       y: 0,
-      rotateX: 0,
       transition: {
         type: "spring",
         stiffness: 100,
         damping: 15,
-        delay: i * 0.2,
-        duration: 0.8
+        delay: i * 0.1,
+        duration: 0.5
       }
     })
   };
   
   return (
-    <section id="roadmap" className="section relative py-20 overflow-hidden bg-gray-50" ref={ref}>
+    <section id="roadmap" className="section relative py-16 overflow-hidden bg-gray-50" ref={ref}>
       {/* 3D Decorative Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div 
-          className="absolute -top-20 -left-20 w-60 h-60 bg-primary/5 rounded-full z-0"
+          className="absolute -top-20 -left-20 w-40 h-40 bg-primary/5 rounded-full z-0"
           style={{ y: y1, rotateZ: rotate1 }}
         />
         <motion.div 
-          className="absolute top-1/3 -right-20 w-40 h-40 bg-secondary/10 rounded-full z-0"
+          className="absolute top-1/3 -right-20 w-32 h-32 bg-secondary/10 rounded-full z-0"
           style={{ y: y2, rotateZ: rotate2 }}
         />
         
@@ -246,43 +203,49 @@ const EnhancedRoadmap = () => {
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
       </div>
       
-      <div className="container relative z-10" ref={roadmapRef} style={{ opacity, scale }}>
+      <div className="container relative z-10" ref={roadmapRef}>
         <SectionTitle 
           title="Our Journey Together" 
           subtitle="From planning to unforgettable memories, here's how we craft your perfect Sri Lankan adventure" 
         />
         
-        {/* 3D Roadmap Container */}
+        {/* 3D Roadmap Container - More compact */}
         <motion.div 
-          className="relative mt-20 perspective"
+          className="relative mt-12 perspective"
           variants={containerVariants}
           initial="hidden"
           animate={controls}
-          style={getPerspectiveStyle(5)}
         >
-          {/* Curved SVG Path */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full z-10 opacity-70">
+          {/* Curved SVG Path - Fixed visibility */}
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full z-10">
+            {/* Line path container */}
+            <div 
+              className="absolute left-1/2 top-0 h-full w-1 bg-primary/30"
+              style={{ transform: 'translateX(-50%)' }}
+            ></div>
+            
+            {/* Decorative curved path overlay */}
             <svg 
-              className="w-full h-full" 
-              viewBox="0 0 100 100" 
+              width="10" 
+              height="100%" 
+              viewBox="0 0 10 100" 
               preserveAspectRatio="none"
               style={{ 
-                position: 'absolute', 
-                top: 0, 
-                left: '50%', 
+                position: 'absolute',
+                top: 0,
+                left: '50%',
                 transform: 'translateX(-50%)',
-                width: '5px',
-                height: '100%',
+                overflow: 'visible',
               }}
             >
               <path
                 ref={pathRef}
-                d="M50,0 C60,25 40,50 50,75 C60,100 50,100 50,100"
+                d="M5,0 C8,25 2,50 5,75 C8,100 5,100 5,100"
                 stroke="#0a4c8c"
-                strokeWidth="5"
+                strokeWidth="3"
                 fill="none"
-                strokeDasharray="1000"
-                strokeDashoffset="1000"
+                strokeDasharray="200"
+                strokeDashoffset="200"
                 strokeLinecap="round"
                 className="path-animation"
               />
@@ -295,29 +258,19 @@ const EnhancedRoadmap = () => {
                 className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary z-20"
                 style={{ 
                   top: `${pos}%`, 
-                  boxShadow: '0 0 20px rgba(10, 76, 140, 0.5)',
-                  transformStyle: 'preserve-3d',
-                  transform: 'translateZ(5px)'
+                  boxShadow: '0 0 15px rgba(10, 76, 140, 0.4)',
                 }}
-              >
-                <span 
-                  className="absolute inset-0 rounded-full animate-ping opacity-75"
-                  style={{ 
-                    background: 'rgba(10, 76, 140, 0.5)',
-                    animationDelay: `${index * 0.2}s`
-                  }}
-                ></span>
-              </div>
+              />
             ))}
           </div>
           
-          {/* Timeline steps with 3D effects */}
+          {/* Timeline steps with simplified effects */}
           <div className="relative z-20">
             {ROADMAP_STEPS.map((step, index) => (
               <motion.div
                 key={index}
                 ref={stepRefs.current[index]}
-                className={`flex flex-col md:flex-row items-center md:items-start gap-8 mb-24 ${
+                className={`flex flex-col md:flex-row items-center md:items-start gap-4 mb-12 ${
                   index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
                 }`}
                 custom={index}
@@ -326,92 +279,48 @@ const EnhancedRoadmap = () => {
                 animate={controls}
               >
                 {/* Mobile step number */}
-                <div className="md:hidden flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 text-white text-lg font-bold shadow-xl transform transition-transform hover:scale-110 z-20">
+                <div className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 text-white text-lg font-bold shadow-md z-20">
                   {index + 1}
                 </div>
                 
-                {/* Content Card with 3D Effect */}
-                <div className={`w-full md:w-5/12 transform-style-3d ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
+                {/* Content Card with simplified effect */}
+                <div className={`w-full md:w-5/12 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
                   <motion.div 
-                    className="bg-white p-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform relative overflow-hidden group roadmap-card transform-style-3d"
-                    initial={{ opacity: 0, x: index % 2 === 0 ? 30 : -30, y: 30 }}
-                    animate={inView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, x: index % 2 === 0 ? 30 : -30, y: 30 }}
-                    transition={{ delay: index * 0.2 + 0.2, duration: 0.6 }}
-                    whileHover={{ scale: 1.05 }}
+                    className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform relative overflow-hidden group roadmap-card"
+                    initial={{ opacity: 0, x: index % 2 === 0 ? 20 : -20, y: 20 }}
+                    animate={inView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, x: index % 2 === 0 ? 20 : -20, y: 20 }}
+                    transition={{ delay: index * 0.1 + 0.2, duration: 0.4 }}
+                    whileHover={{ scale: 1.02 }}
                   >
-                    {/* Card glare effect */}
-                    <div className="card-glare absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none z-10"></div>
-                    
                     {/* Background gradient */}
                     <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
                     
-                    <div className={`flex items-center mb-6 ${index % 2 === 0 ? 'md:justify-end' : 'justify-start'} flex-col md:flex-row gap-4 relative z-20`}>
-                      {/* Icon with 3D floating effect */}
+                    <div className={`flex items-center mb-4 ${index % 2 === 0 ? 'md:justify-end' : 'justify-start'} flex-col md:flex-row gap-3 relative z-20`}>
+                      {/* Icon with simplified floating effect */}
                       <motion.div 
-                        className="bg-primary/10 p-4 rounded-full transform transition-transform group-hover:scale-110 group-hover:bg-primary/20 relative"
-                        animate={{ y: [0, -5, 0] }}
+                        className="bg-primary/10 p-3 rounded-full transform transition-transform group-hover:scale-105 group-hover:bg-primary/20 relative"
+                        animate={{ y: [0, -3, 0] }}
                         transition={{ duration: 3, repeat: Infinity, repeatType: "mirror" }}
-                        style={{ 
-                          transformStyle: 'preserve-3d',
-                          transform: 'translateZ(20px)'
-                        }}
                       >
                         {getIcon(step.icon)}
-                        <div className="absolute inset-0 rounded-full bg-primary opacity-10 group-hover:opacity-20 blur-sm"></div>
                       </motion.div>
                       
-                      {/* Step title with 3D depth */}
-                      <h3 
-                        className="text-2xl font-bold text-primary transform-style-3d"
-                        style={{ 
-                          transformStyle: 'preserve-3d',
-                          transform: 'translateZ(15px)'
-                        }}
-                      >
+                      {/* Step title */}
+                      <h3 className="text-xl font-bold text-primary">
                         {step.title}
                       </h3>
                     </div>
                     
-                    {/* Description with 3D depth */}
-                    <p 
-                      className="text-gray-600 relative z-20 transform-style-3d"
-                      style={{ 
-                        transformStyle: 'preserve-3d',
-                        transform: 'translateZ(10px)'
-                      }}
-                    >
+                    {/* Description */}
+                    <p className="text-gray-600 relative z-20 text-sm">
                       {step.description}
                     </p>
-                    
-                    {/* 3D hover effect overlay */}
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" 
-                      style={{
-                        boxShadow: 'inset 0 0 20px rgba(10, 92, 54, 0.1)',
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(10, 76, 140, 0.05) 100%)',
-                      }}
-                    ></div>
-                    
-                    {/* 3D edge effect */}
-                    <div 
-                      className="absolute -bottom-2 -right-2 w-full h-full rounded-xl border-2 border-primary/10 transform-style-3d"
-                      style={{ 
-                        transform: 'translateZ(-10px)',
-                        opacity: 0.5
-                      }}
-                    ></div>
                   </motion.div>
                 </div>
                 
-                {/* Center circle with number - 3D styled */}
-                <div className="hidden md:flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/80 text-white text-xl font-bold shadow-2xl transform transition-transform hover:scale-110 hover:shadow-glow z-20 transform-style-3d">
-                  <motion.div
-                    animate={{ rotateY: [0, 180, 360] }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                    className="w-full h-full flex items-center justify-center rounded-full transform-style-3d"
-                  >
-                    {index + 1}
-                  </motion.div>
+                {/* Center circle with number - Fixed display */}
+                <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-primary text-white text-lg font-bold shadow-md z-20">
+                  <span>{index + 1}</span>
                 </div>
                 
                 {/* Empty space for alternating layout */}
@@ -421,75 +330,63 @@ const EnhancedRoadmap = () => {
           </div>
         </motion.div>
         
-        {/* Final destination marker with 3D effects */}
+        {/* Final destination marker with simplified effects */}
         <motion.div 
           id="final-marker"
-          className="w-24 h-24 mx-auto mt-8 mb-16 relative transform-style-3d"
+          className="w-16 h-16 mx-auto mt-4 mb-8 relative"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
-          transition={{ delay: 1.5, duration: 0.8 }}
-          style={{ 
-            transformStyle: 'preserve-3d',
-            transition: 'transform 0.3s ease-out'
-          }}
+          transition={{ delay: 1, duration: 0.6 }}
+          whileHover={{ scale: 1.1 }}
         >
-          {/* Multi-layered glowing marker */}
-          <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping-slow transform-style-3d" style={{ transform: 'translateZ(-10px)' }}></div>
-          <div className="absolute inset-2 bg-primary/30 rounded-full animate-ping-slow animation-delay-300 transform-style-3d" style={{ transform: 'translateZ(0px)' }}></div>
-          <div className="absolute inset-4 bg-primary/40 rounded-full animate-ping-slow animation-delay-600 transform-style-3d" style={{ transform: 'translateZ(10px)' }}></div>
+          {/* Simplified glowing marker */}
+          <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping-slow"></div>
+          <div className="absolute inset-2 bg-primary/30 rounded-full animate-ping-slow animation-delay-300"></div>
           
           {/* Center icon */}
-          <div className="absolute inset-0 flex items-center justify-center text-primary transform-style-3d" style={{ transform: 'translateZ(20px)' }}>
-            <Map size={36} />
+          <div className="absolute inset-0 flex items-center justify-center text-primary">
+            <Map size={32} />
           </div>
           
           {/* Text label */}
-          <div 
-            className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-primary font-medium transform-style-3d"
-            style={{ transform: 'translateZ(15px)' }}
-          >
+          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-primary font-medium text-sm">
             Your Adventure Awaits
           </div>
         </motion.div>
       </div>
       
-      {/* CSS for 3D effects */}
+      {/* CSS for simplified effects */}
       <style dangerouslySetInnerHTML={{
         __html: `
         .perspective {
-          perspective: 2000px;
-        }
-        
-        .transform-style-3d {
-          transform-style: preserve-3d;
-          backface-visibility: hidden;
+          perspective: 1000px;
         }
         
         .roadmap-card {
           backface-visibility: hidden;
-          transform-style: preserve-3d;
-          transition: transform 0.5s ease;
+          transform-origin: center center;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        /* Background 3D grid pattern */
+        /* Background grid pattern */
         .bg-grid-pattern {
           background-image: 
             linear-gradient(to right, rgba(10,76,140,0.1) 1px, transparent 1px),
             linear-gradient(to bottom, rgba(10,76,140,0.1) 1px, transparent 1px);
-          background-size: 40px 40px;
-          transform: perspective(1000px) rotateX(60deg) scale(3) translateY(-10%);
+          background-size: 30px 30px;
+          transform: perspective(1000px) rotateX(60deg) scale(2.5) translateY(-10%);
           transform-origin: center center;
         }
         
         /* Path animation */
         .path-animation {
           animation: dash 2s ease-in-out forwards;
-          animation-delay: 0.5s;
+          animation-delay: 0.3s;
         }
         
         @keyframes dash {
           from {
-            stroke-dashoffset: 1000;
+            stroke-dashoffset: 200;
           }
           to {
             stroke-dashoffset: 0;
@@ -499,11 +396,11 @@ const EnhancedRoadmap = () => {
         /* Ping animations */
         @keyframes ping-slow {
           0% {
-            transform: scale(0.8);
+            transform: scale(1);
             opacity: 0.8;
           }
           70%, 100% {
-            transform: scale(1.5);
+            transform: scale(1.3);
             opacity: 0;
           }
         }
@@ -516,18 +413,9 @@ const EnhancedRoadmap = () => {
           animation-delay: 300ms;
         }
         
-        .animation-delay-600 {
-          animation-delay: 600ms;
-        }
-        
-        /* Glow effect */
-        .hover\\:shadow-glow:hover {
-          box-shadow: 0 0 15px #0a4c8c, 0 0 30px rgba(10, 76, 140, 0.3);
-        }
-        
         /* Ensure elements are visible even with animations disabled */
         @media (prefers-reduced-motion: reduce) {
-          .roadmap-card, .transform-style-3d {
+          .roadmap-card {
             transform: none !important;
           }
           
