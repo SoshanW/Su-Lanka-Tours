@@ -188,7 +188,7 @@ const Hero = () => {
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center pt-20 pb-16 overflow-hidden"
       style={{
-        background: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7))"
+        background: "linear-gradient(rgba(123, 123, 123, 0.6), rgba(28, 45, 61, 0.7))"
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

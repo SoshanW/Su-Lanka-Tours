@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import SectionTitle from './ui/SectionTitle';
 import Button from './ui/Button';
 
@@ -87,8 +88,8 @@ const GALLERY_IMAGES = [
   }
 ];
 
-const ImmersiveGallery = () => {
-  const [progress, setProgress] = useState(50);
+const AnimatedImmersiveGallery = () => {
+  const [progress, setProgress] = useState(0); // Start from first image (0)
   const [active, setActive] = useState(0);
   const [isDown, setIsDown] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -96,6 +97,13 @@ const ImmersiveGallery = () => {
   
   const carouselRef = useRef(null);
   const itemsRef = useRef([]);
+  
+  // Animation controls
+  const controls = useAnimation();
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: false
+  });
   
   // Constants
   const speedWheel = 0.02;
@@ -105,6 +113,19 @@ const ImmersiveGallery = () => {
   useEffect(() => {
     itemsRef.current = itemsRef.current.slice(0, GALLERY_IMAGES.length);
   }, []);
+  
+  // Add initial animation on mount
+  useEffect(() => {
+    if (inView) {
+      // Set a small delay to ensure the gallery is visible first
+      const timer = setTimeout(() => {
+        // Animate to the first position slowly
+        setProgress(0);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [inView]);
   
   // Calculate z-index for items
   const getZindex = (index) => {
@@ -122,10 +143,19 @@ const ImmersiveGallery = () => {
     setActive(newActive);
   };
   
-  // Update when progress changes
+  // Update when progress changes or when component initializes
   useEffect(() => {
     animate();
   }, [progress]);
+  
+  // Start/stop animations based on view
+  useEffect(() => {
+    if (inView) {
+      controls.start('visible');
+    } else {
+      controls.start('hidden');
+    }
+  }, [controls, inView]);
   
   // Event handlers
   const handleWheel = (e) => {
@@ -158,7 +188,7 @@ const ImmersiveGallery = () => {
   
   // Handle click on items
   const handleItemClick = (i) => {
-    setProgress((i/GALLERY_IMAGES.length) * 100 + 10);
+    setProgress((i/(GALLERY_IMAGES.length-1)) * 100);
   };
   
   // Add event listeners
@@ -194,18 +224,77 @@ const ImmersiveGallery = () => {
     // Navigate to gallery page
     window.location.href = '/gallery';
   };
+  
+  // Animation variants for scroll animations
+  const containerVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: [0.25, 0.1, 0.25, 1],
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      y: 0, 
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: [0.25, 0.1, 0.25, 1]
+      }
+    }
+  };
+  
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        delay: 0.3
+      }
+    }
+  };
+  
+  const buttonVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        delay: 0.5,
+        type: "spring",
+        stiffness: 100
+      }
+    }
+  };
 
   return (
-    <section id="gallery" className="section bg-gray-50">
-      <div className="container">
+    <section ref={ref} id="gallery" className="section bg-gray-50 py-20 overflow-hidden">
+      <motion.div 
+        className="container"
+        variants={containerVariants}
+        initial="hidden"
+        animate={controls}
+      >
         <SectionTitle 
           title="Gallery" 
           subtitle="A glimpse of the breathtaking sights and experiences awaiting you in Sri Lanka" 
         />
         
-        <div 
+        <motion.div 
           ref={carouselRef}
-          className="gallery-carousel relative mt-12 overflow-hidden h-[70vh] user-select-none"
+          className="gallery-carousel relative mt-12 overflow-hidden h-[70vh] user-select-none bg-gradient-to-br from-primary/5 to-secondary/10 rounded-xl"
           style={{ 
             perspective: '1000px',
             transformStyle: 'preserve-3d'
@@ -214,7 +303,17 @@ const ImmersiveGallery = () => {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          variants={itemVariants}
         >
+          {/* Instruction text is now moved BEFORE the cards to ensure it appears behind them */}
+          <motion.div 
+            className="absolute top-8 left-8 text-primary/80 text-lg font-light"
+            style={{ zIndex: 1 }} // Lower z-index ensures it appears behind cards
+            variants={textVariants}
+          >
+            <span className="font-medium">Scroll</span> or <span className="font-medium">drag</span> to explore
+          </motion.div>
+          
           {GALLERY_IMAGES.map((image, index) => {
             // Calculate styles based on active index
             const zIndex = getZindex(active)[index];
@@ -227,12 +326,12 @@ const ImmersiveGallery = () => {
             const opacity = zIndex / GALLERY_IMAGES.length * 3 - 2;
             
             return (
-              <div 
+              <motion.div 
                 key={image.id}
                 ref={el => itemsRef.current[index] = el}
                 className="carousel-item absolute rounded-lg overflow-hidden cursor-pointer"
                 style={{
-                  zIndex,
+                  zIndex: zIndex + 10, // Increased z-index to ensure cards appear above instruction text
                   width: 'clamp(150px, 30vw, 300px)',
                   height: 'clamp(200px, 40vw, 400px)',
                   top: '50%',
@@ -261,6 +360,13 @@ const ImmersiveGallery = () => {
                       background: 'linear-gradient(to bottom, rgba(0, 0, 0, .3), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .5))'
                     }}
                   ></div>
+                  
+                  {/* Category tag */}
+                  <div 
+                    className="absolute z-10 text-white top-3 right-3 bg-black/30 backdrop-blur-sm text-xs font-medium px-3 py-1 rounded-full"
+                  >
+                    {image.category}
+                  </div>
                   
                   {/* Title */}
                   <div 
@@ -297,74 +403,38 @@ const ImmersiveGallery = () => {
                     }}
                   />
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-          
-          {/* Layout box with decorative elements */}
-          <div className="layout absolute z-0 inset-0 pointer-events-none">
-            <div className="box absolute bottom-8 left-8 text-white transform-origin-top-left -rotate-90 text-sm uppercase opacity-40 leading-tight">
-              High-end, authentic<br />visual experiences<br />of beautiful Sri Lanka.
-            </div>
-          </div>
-          
-          {/* Custom cursor */}
-          <div 
-            className="cursor fixed rounded-full border border-white/20 pointer-events-none hidden md:block"
-            style={{
-              width: '40px',
-              height: '40px',
-              top: cursorPos.y,
-              left: cursorPos.x,
-              marginLeft: '-20px',
-              marginTop: '-20px',
-              transform: `translate(${cursorPos.x}px, ${cursorPos.y}px)`,
-              transition: 'transform 0.85s cubic-bezier(0, 0.02, 0, 1)',
-              zIndex: 1000
-            }}
-          ></div>
-          <div 
-            className="cursor cursor2 fixed rounded-full pointer-events-none hidden md:block"
-            style={{
-              width: '2px',
-              height: '2px',
-              top: cursorPos.y,
-              left: cursorPos.x,
-              marginLeft: '-1px',
-              marginTop: '-1px',
-              transform: `translate(${cursorPos.x}px, ${cursorPos.y}px)`,
-              transition: 'transform 0.7s cubic-bezier(0, 0.02, 0, 1)',
-              background: 'white',
-              zIndex: 1000
-            }}
-          ></div>
-        </div>
+        </motion.div>
         
         <motion.div 
           className="mt-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
+          variants={buttonVariants}
         >
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+          <motion.p 
+            className="text-gray-600 mb-6 max-w-2xl mx-auto"
+            animate={{ y: [0, -5, 0] }}
+            transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+          >
             These are just a few highlights from our gallery. Visit our full gallery to see more stunning images from across Sri Lanka.
-          </p>
+          </motion.p>
           <Button 
             variant="primary" 
             size="lg"
             onClick={handleViewFullGallery}
+            className="transform transition-transform hover:scale-105 hover:shadow-glow relative overflow-hidden group"
           >
-            View Full Gallery
+            <span className="relative z-10">View Full Gallery</span>
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary via-secondary/70 to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left opacity-60 z-0"></span>
           </Button>
         </motion.div>
-      </div>
+      </motion.div>
       
       {/* Necessary CSS for the carousel */}
-      <style jsx>{`
+      <style>{`
         .gallery-carousel {
-          background: linear-gradient(135deg, rgba(10, 76, 140, 0.05), rgba(10, 76, 140, 0.2));
-          border-radius: 20px;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
           padding: 20px 0;
         }
         
@@ -382,6 +452,10 @@ const ImmersiveGallery = () => {
           opacity: .15;
         }
         
+        .hover\\:shadow-glow:hover {
+          box-shadow: 0 0 15px #0a4c8c, 0 0 30px rgba(10, 76, 140, 0.3);
+        }
+        
         @media (prefers-reduced-motion: reduce) {
           .carousel-item {
             transition: none !important;
@@ -396,4 +470,4 @@ const ImmersiveGallery = () => {
   );
 };
 
-export default ImmersiveGallery;
+export default AnimatedImmersiveGallery;
