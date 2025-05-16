@@ -18,7 +18,7 @@
     "axios": "^1.8.3",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
-    "framer-motion": "^10.16.4",
+    "framer-motion": "^10.18.0",
     "gsap": "^3.12.7",
     "lucide-react": "^0.510.0",
     "react": "^18.2.0",
