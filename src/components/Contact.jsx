@@ -558,7 +558,7 @@ const Contact = () => {
               </div>
             </motion.div>
             
-            {/* Virtual Tour Card */}
+            {/* Virtual Tour Card
             <motion.div 
               className="bg-white rounded-xl shadow-xl overflow-hidden h-64 relative"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -566,10 +566,8 @@ const Contact = () => {
               transition={{ duration: 0.8, delay: 0.6 }}
               whileHover={{ scale: 1.02 }}
             >
-              {/* Background gradient animation */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/20 to-primary/20 animate-gradient-shift"></div>
               
-              {/* Decorative elements */}
               <div className="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-full transform translate-x-1/2 -translate-y-1/2"></div>
               <div className="absolute left-0 bottom-0 w-24 h-24 bg-secondary/10 rounded-full transform -translate-x-1/2 translate-y-1/2"></div>
               
@@ -592,7 +590,7 @@ const Contact = () => {
                   </svg>
                 </Button>
               </div>
-            </motion.div>
+            </motion.div> */}
           </div>
         </div>
         
