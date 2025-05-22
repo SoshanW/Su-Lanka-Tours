@@ -16,6 +16,8 @@ const IntroVideo = ({ onVideoEnd }) => {
     // Start video playback when component mounts
     videoElement.play().catch(error => {
       console.error('Video playback failed:', error);
+      // If video fails to play, just skip to the main site
+      handleVideoEnd();
     });
     
     // Event listener for when the video is near its end
@@ -33,12 +35,20 @@ const IntroVideo = ({ onVideoEnd }) => {
       onVideoEnd && onVideoEnd();
     };
     
+    // Event listener for video errors
+    const handleVideoError = () => {
+      console.error('Video error occurred');
+      handleVideoEnd();
+    };
+    
     videoElement.addEventListener('timeupdate', handleTimeUpdate);
     videoElement.addEventListener('ended', handleVideoEnd);
+    videoElement.addEventListener('error', handleVideoError);
     
     return () => {
       videoElement.removeEventListener('timeupdate', handleTimeUpdate);
       videoElement.removeEventListener('ended', handleVideoEnd);
+      videoElement.removeEventListener('error', handleVideoError);
     };
   }, [onVideoEnd, isVideoEnding]);
   
@@ -59,6 +69,12 @@ const IntroVideo = ({ onVideoEnd }) => {
     }
   }, [isVideoEnding, onVideoEnd]);
   
+  // Manual skip function
+  const handleSkip = () => {
+    setIsVideoComplete(true);
+    onVideoEnd && onVideoEnd();
+  };
+  
   return (
     <AnimatePresence>
       {!isVideoComplete && (
@@ -77,7 +93,20 @@ const IntroVideo = ({ onVideoEnd }) => {
               muted
               playsInline
               preload="auto"
-            ></video>
+            />
+            
+            {/* Skip button */}
+            <motion.button 
+              onClick={handleSkip}
+              className="absolute bottom-8 right-8 text-white bg-black bg-opacity-50 backdrop-blur-sm px-4 py-2 rounded-lg hover:bg-opacity-70 transition-all duration-300 border border-white border-opacity-20 z-10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 2, duration: 0.5 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Skip Intro →
+            </motion.button>
             
             {/* Overlay with logo that fades in at the end */}
             {isVideoEnding && (

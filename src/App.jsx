@@ -10,29 +10,46 @@ import { useAppContext } from './contexts/AppContext';
 
 function App() {
   const [videoEnded, setVideoEnded] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { isLoaded } = useAppContext();
   
-  // Prevent scrolling during video
+  // Detect iOS and mobile devices
   useEffect(() => {
-    if (!videoEnded) {
-      // Lock scrolling when video is playing
-      document.body.style.overflow = 'hidden';
-    } else {
-      // Re-enable scrolling when video ends
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const mobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    setIsIOS(iOS);
+    setIsMobile(mobile);
+    
+    // Skip video on iOS due to autoplay restrictions
+    if (iOS) {
+      setVideoEnded(true);
       document.body.style.overflow = '';
     }
     
-    // Clean up function
+    console.log('Device detection:', { iOS, mobile });
+  }, []);
+  
+  // Prevent scrolling during video (only for non-iOS devices)
+  useEffect(() => {
+    if (!isIOS && !videoEnded) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
     return () => {
       document.body.style.overflow = '';
     };
-  }, [videoEnded]);
+  }, [videoEnded, isIOS]);
   
-  // Existing preload logic
+  // Preload critical images
   useEffect(() => {
     const preloadImages = () => {
       const imagesToPreload = [
         '/images/hero-bg.jpg',
+        '/images/logo.png',
         '/images/founder.jpg',
         '/images/attractions/sigiriya.jpg',
       ];
@@ -51,12 +68,34 @@ function App() {
       <Helmet>
         <title>Su Lanka Tours | Discover the Pearl of the Indian Ocean</title>
         <meta name="description" content="Experience the beauty of Sri Lanka with Su Lanka Tours. Discover ancient temples, pristine beaches, wildlife, and more with our expert local guides." />
+        
+        {/* iOS-specific meta tags */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Su Lanka Tours" />
+        <meta name="format-detection" content="telephone=no" />
+        
+        {/* Performance optimization for mobile */}
+        {isMobile && (
+          <>
+            <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+            <meta name="HandheldFriendly" content="true" />
+          </>
+        )}
       </Helmet>
       
-      {!videoEnded && <IntroVideo onVideoEnd={() => setVideoEnded(true)} />}
+      {/* Only show intro video on non-iOS devices */}
+      {!videoEnded && !isIOS && (
+        <IntroVideo onVideoEnd={() => setVideoEnded(true)} />
+      )}
       
-      <div className={`app-container ${videoEnded && isLoaded ? 'opacity-100' : 'opacity-0'}`} 
-        style={{ transition: 'opacity 1s ease-in-out' }}>
+      <div 
+        className={`app-container ${isIOS ? 'ios-mode' : ''} ${isMobile ? 'mobile-mode' : ''} ${videoEnded && isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+        style={{ 
+          transition: isIOS ? 'opacity 0.3s ease-in-out' : 'opacity 1s ease-in-out',
+          minHeight: '100vh'
+        }}
+      >
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />

@@ -3,14 +3,200 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Enhanced viewport for iOS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    
+    <!-- SEO Meta Tags -->
     <meta name="description" content="Su Lanka Tours - Experience the beauty of Sri Lanka with our tailored travel packages and guided tours." />
+    <meta name="keywords" content="Sri Lanka tours, travel Sri Lanka, Ceylon tours, Sigiriya, Kandy, Galle, tea plantations, wildlife safari" />
+    <meta name="author" content="Su Lanka Tours" />
+    
+    <!-- iOS Safari specific meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Su Lanka Tours" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- iOS Home Screen Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/images/logo.png" />
+    
+    <!-- iOS Splash Screen -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+    <!-- Microsoft Edge/IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="msapplication-TileColor" content="#0a4c8c" />
+    <meta name="msapplication-TileImage" content="/images/logo.png" />
+    
+    <!-- Android Chrome -->
+    <meta name="theme-color" content="#0a4c8c" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Performance hints -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    
+    <!-- Critical resource preloads -->
+    <link rel="preload" href="/images/hero-bg.jpg" as="image" />
+    <link rel="preload" href="/images/logo.png" as="image" />
+    
     <title>Su Lanka Tours | Discover the Pearl of the Indian Ocean</title>
-    <!-- Google Fonts -->
+    
+    <!-- Google Fonts with display=swap for better performance -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Prevent FOUC (Flash of Unstyled Content) -->
+    <style>
+      /* Critical CSS for initial load */
+      body {
+        margin: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', 'Helvetica Neue', sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Loading screen styles */
+      .initial-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #0a4c8c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      
+      .loading-logo {
+        width: 200px;
+        height: auto;
+        opacity: 0.9;
+      }
+      
+      /* iOS Safari fixes */
+      * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+      
+      html {
+        -webkit-text-size-adjust: 100%;
+        height: 100%;
+      }
+      
+      /* iOS Safari viewport fix */
+      @supports (-webkit-touch-callout: none) {
+        .min-h-screen {
+          min-height: -webkit-fill-available;
+        }
+      }
+      
+      /* Hide loading screen when React loads */
+      .app-loaded .initial-loading {
+        display: none;
+      }
+    </style>
+    
+    <!-- iOS Safari specific styles -->
+    <!--[if iOS]>
+    <style>
+      body {
+        -webkit-overflow-scrolling: touch;
+        overflow-scrolling: touch;
+      }
+    </style>
+    <![endif]-->
   </head>
   <body>
+    <!-- Initial loading screen -->
+    <div class="initial-loading" id="initial-loading">
+      <img src="/images/logo.png" alt="Su Lanka Tours" class="loading-logo" />
+    </div>
+    
+    <!-- React app container -->
     <div id="root"></div>
+    
+    <!-- Hide loading screen when React starts -->
+    <script>
+      // Remove loading screen when React loads
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          var loadingElement = document.getElementById('initial-loading');
+          if (loadingElement) {
+            loadingElement.style.opacity = '0';
+            loadingElement.style.transition = 'opacity 0.5s ease-out';
+            setTimeout(function() {
+              loadingElement.style.display = 'none';
+              document.body.classList.add('app-loaded');
+            }, 500);
+          }
+        }, 500);
+      });
+      
+      // iOS-specific fixes
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        document.documentElement.style.setProperty('-webkit-appearance', 'none');
+        
+        // Prevent zoom on input focus
+        document.addEventListener('touchstart', function() {
+          if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+            document.activeElement.blur();
+          }
+        });
+        
+        // Handle iOS viewport changes
+        function updateViewport() {
+          const viewport = document.querySelector('meta[name="viewport"]');
+          if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover');
+          }
+        }
+        
+        window.addEventListener('orientationchange', updateViewport);
+        updateViewport();
+      }
+      
+      // Performance optimization: Preload critical resources
+      function preloadCriticalResources() {
+        const criticalImages = [
+          '/images/hero-bg.jpg',
+          '/images/founder.jpg',
+          '/images/attractions/sigiriya.jpg'
+        ];
+        
+        criticalImages.forEach(function(src) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = src;
+          document.head.appendChild(link);
+        });
+      }
+      
+      // Preload resources after initial load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', preloadCriticalResources);
+      } else {
+        preloadCriticalResources();
+      }
+    </script>
+    
+    <!-- Main React app script -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
