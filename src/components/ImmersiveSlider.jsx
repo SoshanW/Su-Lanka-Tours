@@ -1,6 +1,6 @@
 // FastAutoplaySlider.jsx - Fast autoplay image slider with minimal 3D effect
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation, useDragControls } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import SectionTitle from './ui/SectionTitle';
 
@@ -8,8 +8,10 @@ const FastAutoplaySlider = () => {
   // State to track current slide
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
+  const [dragX, setDragX] = useState(0);
   const autoplayIntervalRef = useRef(null);
   const sliderRef = useRef(null);
+  const dragControls = useDragControls();
   
   // Animation controls for scroll-based animations
   const controls = useAnimation();
@@ -192,6 +194,22 @@ const FastAutoplaySlider = () => {
     }
   };
   
+  // Handle drag end
+  const handleDragEnd = (event, info) => {
+    const threshold = 100; // Minimum drag distance to trigger slide change
+    
+    if (Math.abs(info.offset.x) > threshold) {
+      if (info.offset.x > 0) {
+        prevSlide();
+      } else {
+        nextSlide();
+      }
+    }
+    
+    // Reset drag position
+    setDragX(0);
+  };
+  
   return (
     <section 
       ref={ref}
@@ -225,7 +243,6 @@ const FastAutoplaySlider = () => {
           initial="hidden"
           animate={controls}
         >
-        
           <nav className="slides-nav__nav">
             <button className="slides-nav__prev js-prev" onClick={prevSlide}>Prev</button>
             <button className="slides-nav__next js-next" onClick={nextSlide}>Next</button>
@@ -233,13 +250,24 @@ const FastAutoplaySlider = () => {
         </motion.section>
 
         {slides.map((slide, index) => (
-          <section 
+          <motion.section 
             key={slide.id}
             className={`slide ${index === currentSlideIndex ? 'is-active' : ''} ${index === (currentSlideIndex - 1 + slides.length) % slides.length ? 'is-prev' : ''} ${index === (currentSlideIndex + 1) % slides.length ? 'is-next' : ''}`}
+            drag="x"
+            dragControls={dragControls}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={handleDragEnd}
+            style={{ x: dragX }}
+            whileTap={{ cursor: "grabbing" }}
           >
             <div className="slide__content">
               <figure className="slide__figure">
-                <div className="slide__img" style={{ backgroundImage: `url(${slide.image})` }}></div>
+                <div 
+                  className="slide__img" 
+                  style={{ backgroundImage: `url(${slide.image})` }}
+                  onPointerDown={(e) => dragControls.start(e)}
+                ></div>
               </figure>
               <header className="slide__header">
                 <h2 className="slide__title">
@@ -248,7 +276,7 @@ const FastAutoplaySlider = () => {
                 </h2>
               </header>
             </div>
-          </section>
+          </motion.section>
         ))}
       </motion.div>
       
@@ -351,12 +379,12 @@ const FastAutoplaySlider = () => {
           position: absolute;
           width: 100%;
           height: 100%;
-          transition: z-index 0.4s ease; /* Faster transition */
+          transition: z-index 0.4s ease;
+          cursor: grab;
         }
         
-        .slide.is-active {
-          z-index: 19;
-          transition: z-index 0.4s ease; /* Faster transition */
+        .slide:active {
+          cursor: grabbing;
         }
         
         .slide__content {
