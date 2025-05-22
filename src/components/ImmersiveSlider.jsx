@@ -32,22 +32,22 @@ const FastAutoplaySlider = () => {
     {
       id: 1,
       title: ['Discover', 'Sri Lanka'],
-      image: 'https://source.unsplash.com/nfTA8pdaq9A/2000x1100'
+      image: '/images/slider/slider-1.jpg',
     },
     {
       id: 2,
       title: ['Experience', 'Local Culture'],
-      image: 'https://source.unsplash.com/okmtVMuBzkQ/2000x1100'
+      image: '/images/slider/slider-2.jpg',
     },
     {
       id: 3,
       title: ['Explore', 'Natural Wonders'],
-      image: 'https://source.unsplash.com/WuQME0I_oZA/2000x1100'
+      image: '/images/slider/slider-3.jpg',
     },
     {
       id: 4,
       title: ['Unforgettable', 'Memories'],
-      image: 'https://source.unsplash.com/NsWcRlBT_74/2000x1100'
+      image: '/images/slider/slider-4.jpg',
     }
   ];
   
@@ -198,6 +198,29 @@ const FastAutoplaySlider = () => {
       id="immersive-slider" 
       className="relative py-16 overflow-hidden"
     >
+      {/* Background Images */}
+      <div className="absolute inset-0 z-0">
+        {slides.map((slide, index) => (
+          <motion.div
+            key={`bg-${slide.id}`}
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ 
+              opacity: index === currentSlideIndex ? 1 : 0,
+              transition: { duration: 0.5 }
+            }}
+          >
+            <div 
+              className="w-full h-full bg-cover bg-center bg-no-repeat"
+              style={{ 
+                backgroundImage: `url(${slide.backgroundImage})`,
+                filter: 'brightness(0.7)'
+              }}
+            />
+          </motion.div>
+        ))}
+      </div>
+
       {/* Title appears first, separate from other components */}
       <motion.div 
         className="container mb-12"
@@ -395,13 +418,17 @@ const FastAutoplaySlider = () => {
           font-family: Montserrat, helvetica;
           font-size: 2.5em;
           font-weight: 700;
-          color: #111;
+          color: #ffffff;
           overflow-y: hidden;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
+                       -2px -2px 4px rgba(0, 0, 0, 0.5);
         }
         
         @media (min-width: 54em) {
           .slide__title {
             font-size: 5em;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6),
+                         -3px -3px 6px rgba(0, 0, 0, 0.6);
           }
         }
         
