@@ -1,4 +1,3 @@
-// textAnimation.js
 import { motion } from 'framer-motion';
 import anime from 'animejs/lib/anime.es.js';
 import { useEffect, useRef } from 'react';

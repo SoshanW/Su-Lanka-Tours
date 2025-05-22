@@ -34,7 +34,8 @@ const Contact = () => {
   // Scroll-based animations
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "end start"]
+    offset: ["start end", "end start"],
+    layoutEffect: false
   });
   
   const y1 = useTransform(scrollYProgress, [0, 1], [100, -100]);

@@ -1,4 +1,3 @@
-// SectionTitle.jsx
 import React from 'react';
 import { TextReveal } from '../../animations/textAnimation';
 import { FadeIn } from '../../animations/fadeIn';

@@ -1,4 +1,3 @@
-// AnimatedText.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AnimatedText as AnimatedTextCore, TextReveal, TypewriterText } from '../../animations/textAnimation';

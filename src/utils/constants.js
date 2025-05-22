@@ -1,4 +1,3 @@
-// constants.js
 export const NAVIGATION_LINKS = [
     { name: "Home", to: "#home" },
     { name: "About", to: "#about" },

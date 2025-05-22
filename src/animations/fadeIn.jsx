@@ -1,4 +1,3 @@
-// fadeIn.js
 import { useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'framer-motion';

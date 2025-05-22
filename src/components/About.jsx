@@ -15,10 +15,11 @@ const About = () => {
   const statCounters = useRef([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
-  // Scroll-based animation setup
+  // Add layoutEffect: false to fix the hydration warning
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "end start"]
+    offset: ["start end", "end start"],
+    layoutEffect: false
   });
   
   const y1 = useTransform(scrollYProgress, [0, 1], [100, -100]);

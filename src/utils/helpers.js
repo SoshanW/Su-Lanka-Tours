@@ -1,4 +1,3 @@
-// helpers.js
 /**
  * Smooth scroll to an element
  * @param {string} elementId - The ID of the element to scroll to

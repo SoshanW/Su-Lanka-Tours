@@ -1,4 +1,3 @@
-// slideIn.js
 import { motion } from 'framer-motion';
 
 /**

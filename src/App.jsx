@@ -12,21 +12,27 @@ function App() {
   const [videoEnded, setVideoEnded] = useState(false);
   const { isLoaded } = useAppContext();
   
-  // Prevent scrolling during video and preload key images
+  // Prevent scrolling during video
   useEffect(() => {
-    // Lock scrolling when video is playing
     if (!videoEnded) {
+      // Lock scrolling when video is playing
       document.body.style.overflow = 'hidden';
     } else {
       // Re-enable scrolling when video ends
       document.body.style.overflow = '';
     }
     
-    // Pre-load key images for better performance after video ends
+    // Clean up function
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [videoEnded]);
+  
+  // Existing preload logic
+  useEffect(() => {
     const preloadImages = () => {
       const imagesToPreload = [
         '/images/hero-bg.jpg',
-        '/images/logo.png',
         '/images/founder.jpg',
         '/images/attractions/sigiriya.jpg',
       ];
@@ -37,14 +43,8 @@ function App() {
       });
     };
     
-    // Call preload function
     preloadImages();
-    
-    // Cleanup function
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [videoEnded]);
+  }, []);
 
   return (
     <>

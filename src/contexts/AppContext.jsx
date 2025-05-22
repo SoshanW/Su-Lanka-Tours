@@ -1,5 +1,13 @@
-// AppContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
+
+// Simple debounce function
+const debounce = (func, wait = 100) => {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+};
 
 const AppContext = createContext();
 
@@ -11,16 +19,16 @@ export const AppProvider = ({ children }) => {
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    // Wait for initial load
+    // Set loaded state with a shorter timeout
     setTimeout(() => {
       setIsLoaded(true);
-    }, 500);
+    }, 300);
     
-    // Handle scroll for animations and active section
-    const handleScroll = () => {
+    // Debounced scroll handler for better performance
+    const handleScroll = debounce(() => {
       setScrollY(window.scrollY);
       
-      // Check which section is in view
+      // Section detection
       const sections = document.querySelectorAll('section[id]');
       
       sections.forEach(section => {
@@ -31,36 +39,9 @@ export const AppProvider = ({ children }) => {
           setActiveSection(section.getAttribute('id'));
         }
       });
-    };
-    
-    // Initialize scroll observer for fade-in animations
-    const initScrollObserver = () => {
-      const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-      };
-      
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('appear');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, observerOptions);
-      
-      // Observe all elements with animation classes
-      const animatedElements = document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right');
-      animatedElements.forEach(element => observer.observe(element));
-    };
+    }, 50); // 50ms debounce
     
     window.addEventListener('scroll', handleScroll);
-    
-    // Initialize animations after a slight delay to ensure DOM is ready
-    setTimeout(() => {
-      initScrollObserver();
-    }, 1000);
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
