@@ -194,7 +194,7 @@ const EnhancedTestimonials = () => {
   
   // Fixed transition duration for consistent animations
   const slideTransition = {
-    duration: 0.6,
+    duration: 0.4,
     ease: [0.25, 0.1, 0.25, 1]
   };
   
@@ -229,6 +229,13 @@ const EnhancedTestimonials = () => {
         delay: 0.3,
         duration: 0.4,
       }
+    }
+  };
+  
+  const handleStartPlanning = () => {
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
   
@@ -328,7 +335,7 @@ const EnhancedTestimonials = () => {
                     
                     {/* Country badge */}
                     <div 
-                      className="absolute -bottom-2 -right-2 bg-white py-1 px-3 rounded-full text-xs font-medium shadow-md text-primary transform-style-3d"
+                      className="absolute -bottom-2 -right-2 bg-white py-1 px-3 rounded-full text-[10px] md:text-xs font-medium shadow-md text-primary transform-style-3d z-20"
                       style={{ transformStyle: 'preserve-3d', transform: 'translateZ(30px)' }}
                     >
                       {TESTIMONIALS[activeIndex].country}
@@ -458,6 +465,7 @@ const EnhancedTestimonials = () => {
               <motion.button
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg shadow-lg hover:shadow-glow transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
                 whileTap={{ scale: 0.95 }}
+                onClick={handleStartPlanning}
               >
                 <span className="relative z-10">Start Planning Now</span>
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary via-secondary/70 to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left opacity-60 z-0"></span>

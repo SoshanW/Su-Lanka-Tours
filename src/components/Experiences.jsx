@@ -457,14 +457,7 @@ const EnhancedExperienceSlider = () => {
             </motion.p>
             
             {/* 3D Button with Glow Effect */}
-            <Button 
-              variant="primary" 
-              size="lg"
-              className="transform transition-transform hover:scale-105 hover:shadow-glow relative overflow-hidden group"
-            >
-              <span className="relative z-10">View All Experiences</span>
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary via-secondary/70 to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left opacity-60 z-0"></span>
-            </Button>
+           
           </motion.div>
         </motion.div>
       </div>

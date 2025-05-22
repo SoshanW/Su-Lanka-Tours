@@ -98,8 +98,12 @@ const EnhancedFooter = () => {
   
   // Destinations for the footer
   const destinations = [
-    "Colombo", "Kandy", "Sigiriya", 
-    "Ella", "Mirissa", "Galle"
+    { name: "Colombo", url: "https://en.wikipedia.org/wiki/Colombo" },
+    { name: "Kandy", url: "https://en.wikipedia.org/wiki/Kandy" },
+    { name: "Sigiriya", url: "https://en.wikipedia.org/wiki/Sigiriya" },
+    { name: "Ella", url: "https://en.wikipedia.org/wiki/Ella,_Sri_Lanka" },
+    { name: "Mirissa", url: "https://en.wikipedia.org/wiki/Mirissa" },
+    { name: "Galle", url: "https://en.wikipedia.org/wiki/Galle" }
   ];
   
   return (
@@ -325,16 +329,18 @@ const EnhancedFooter = () => {
               
               <ul className="space-y-2 text-sm">
                 {destinations.map((destination, index) => (
-                  <motion.li key={destination}>
+                  <motion.li key={destination.name}>
                     <motion.a
-                      href="#"
+                      href={destination.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-gray-300 hover:text-white transition-colors group flex items-center"
                       whileHover={{ x: 3 }}
                       onMouseEnter={() => handleMouseEnter('destinations', index)}
                       onMouseLeave={() => handleMouseLeave('destinations', index)}
                     >
                       <span className={`inline-block w-0 h-0.5 bg-secondary mr-0 group-hover:w-4 group-hover:mr-2 transition-all duration-300 ${hoverState.destinations[index] ? 'w-4 mr-2' : ''}`}></span>
-                      {destination}
+                      {destination.name}
                     </motion.a>
                   </motion.li>
                 ))}
@@ -367,32 +373,7 @@ const EnhancedFooter = () => {
                 &copy; {currentYear} Su Lanka Tours. All rights reserved.
               </motion.p>
               
-              <div className="mt-2 md:mt-0 flex space-x-4 text-xs text-gray-400">
-                <motion.a 
-                  href="#" 
-                  className="hover:text-white transition-colors duration-300"
-                  whileHover={{ y: -1, color: '#fff' }}
-                  variants={itemVariants}
-                >
-                  Privacy Policy
-                </motion.a>
-                <motion.a 
-                  href="#" 
-                  className="hover:text-white transition-colors duration-300"
-                  whileHover={{ y: -1, color: '#fff' }}
-                  variants={itemVariants}
-                >
-                  Terms of Service
-                </motion.a>
-                <motion.a 
-                  href="#" 
-                  className="hover:text-white transition-colors duration-300"
-                  whileHover={{ y: -1, color: '#fff' }}
-                  variants={itemVariants}
-                >
-                  Sitemap
-                </motion.a>
-              </div>
+              
             </div>
             
             {/* Made with love */}
@@ -405,7 +386,6 @@ const EnhancedFooter = () => {
                 initial={{ scale: 1 }}
                 whileHover={{ scale: 1.05 }}
               >
-                Made with 
                 <motion.span
                   animate={{ 
                     scale: [1, 1.2, 1],
@@ -417,9 +397,7 @@ const EnhancedFooter = () => {
                   }}
                   className="mx-1 text-red-500"
                 >
-                  <Heart size={12} fill="currentColor" />
                 </motion.span> 
-                in Sri Lanka
               </motion.p>
             </motion.div>
           </motion.div>

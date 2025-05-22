@@ -3,6 +3,7 @@ import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import SectionTitle from './ui/SectionTitle';
 import Button from './ui/Button';
+import { MapPin } from 'lucide-react';
 
 // Extended gallery images - we'll use the same structure as in the existing site
 const GALLERY_IMAGES = [
@@ -89,11 +90,14 @@ const GALLERY_IMAGES = [
 ];
 
 const AnimatedImmersiveGallery = () => {
-  const [progress, setProgress] = useState(0); // Start from first image (0)
+  const [progress, setProgress] = useState(0);
   const [active, setActive] = useState(0);
   const [isDown, setIsDown] = useState(false);
   const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   
   const carouselRef = useRef(null);
   const itemsRef = useRef([]);
@@ -109,6 +113,27 @@ const AnimatedImmersiveGallery = () => {
   const speedWheel = 0.02;
   const speedDrag = -0.1;
   
+  // Device detection with window resize listener
+  useEffect(() => {
+    const checkDevice = () => {
+      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const mobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      
+      setIsIOS(iOS);
+      setIsMobile(mobile);
+    };
+    
+    // Initial check
+    checkDevice();
+    
+    // Add resize listener to update on screen size change
+    window.addEventListener('resize', checkDevice);
+    
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+    };
+  }, []);
+  
   // Set up refs for carousel items
   useEffect(() => {
     itemsRef.current = itemsRef.current.slice(0, GALLERY_IMAGES.length);
@@ -117,9 +142,7 @@ const AnimatedImmersiveGallery = () => {
   // Add initial animation on mount
   useEffect(() => {
     if (inView) {
-      // Set a small delay to ensure the gallery is visible first
       const timer = setTimeout(() => {
-        // Animate to the first position slowly
         setProgress(0);
       }, 300);
       
@@ -157,29 +180,35 @@ const AnimatedImmersiveGallery = () => {
     }
   }, [controls, inView]);
   
-  // Event handlers
+  // Event handlers - Enhanced for mobile/iOS with original drag behavior
   const handleWheel = (e) => {
+    if (isMobile) return; // Disable wheel events on mobile
     e.preventDefault();
     const wheelProgress = e.deltaY * speedWheel;
     setProgress(prev => prev + wheelProgress);
   };
   
   const handleMouseMove = (e) => {
-    // Update cursor position
-    setCursorPos({ x: e.clientX, y: e.clientY });
+    // Update cursor position for desktop
+    if (!isMobile) {
+      setCursorPos({ x: e.clientX, y: e.clientY });
+    }
     
     if (!isDown) return;
     
-    const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    const mouseProgress = (x - startX) * speedDrag;
+    const clientX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+    const mouseProgress = (clientX - startX) * speedDrag;
     
     setProgress(prev => prev + mouseProgress);
-    setStartX(x);
+    setStartX(clientX);
   };
   
   const handleMouseDown = (e) => {
     setIsDown(true);
-    setStartX(e.clientX || (e.touches && e.touches[0].clientX) || 0);
+    const clientX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+    const clientY = e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY) || 0;
+    setStartX(clientX);
+    setStartY(clientY);
   };
   
   const handleMouseUp = () => {
@@ -191,41 +220,57 @@ const AnimatedImmersiveGallery = () => {
     setProgress((i/(GALLERY_IMAGES.length-1)) * 100);
   };
   
-  // Add event listeners
+  // Add event listeners - Original drag behavior
   useEffect(() => {
     const carousel = carouselRef.current;
     if (!carousel) return;
     
+    // Desktop events
     carousel.addEventListener('wheel', handleWheel, { passive: false });
+    carousel.addEventListener('mousedown', handleMouseDown);
+    carousel.addEventListener('mousemove', handleMouseMove);
+    carousel.addEventListener('mouseup', handleMouseUp);
+    carousel.addEventListener('mouseleave', handleMouseUp);
+    
+    // Mobile/Touch events
+    carousel.addEventListener('touchstart', handleMouseDown, { passive: false });
+    carousel.addEventListener('touchmove', handleMouseMove, { passive: false });
+    carousel.addEventListener('touchend', handleMouseUp, { passive: false });
     
     return () => {
-      carousel.removeEventListener('wheel', handleWheel);
+      if (carousel) {
+        carousel.removeEventListener('wheel', handleWheel);
+        carousel.removeEventListener('mousedown', handleMouseDown);
+        carousel.removeEventListener('mousemove', handleMouseMove);
+        carousel.removeEventListener('mouseup', handleMouseUp);
+        carousel.removeEventListener('mouseleave', handleMouseUp);
+        carousel.removeEventListener('touchstart', handleMouseDown);
+        carousel.removeEventListener('touchmove', handleMouseMove);
+        carousel.removeEventListener('touchend', handleMouseUp);
+      }
     };
   }, []);
   
-  // Add touch event listeners for mobile
+  // Global document event listeners for mouse up (in case mouse leaves carousel)
   useEffect(() => {
-    const handleTouchStart = (e) => handleMouseDown(e.touches[0]);
-    const handleTouchMove = (e) => handleMouseMove(e.touches[0]);
-    const handleTouchEnd = () => handleMouseUp();
+    const handleGlobalMouseUp = () => {
+      setIsDown(false);
+    };
     
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchmove', handleTouchMove);
-    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('touchend', handleGlobalMouseUp);
     
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchend', handleGlobalMouseUp);
     };
-  }, [isDown, startX]);
-
-  const handleViewFullGallery = () => {
-    // Navigate to gallery page
-    window.location.href = '/gallery';
-  };
+  }, []);
   
-  // Animation variants for scroll animations
+  // Get prev, current, and next indices
+  const prevIndex = (active - 1 + GALLERY_IMAGES.length) % GALLERY_IMAGES.length;
+  const nextIndex = (active + 1) % GALLERY_IMAGES.length;
+  
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: { 
@@ -233,54 +278,37 @@ const AnimatedImmersiveGallery = () => {
       y: 0,
       transition: {
         duration: 0.8,
-        ease: [0.25, 0.1, 0.25, 1],
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.9 },
-    visible: {
-      opacity: 1,
-      y: 0, 
-      scale: 1,
-      transition: {
-        duration: 0.6,
         ease: [0.25, 0.1, 0.25, 1]
       }
     }
   };
   
-  const textVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
+  const slideVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
       transition: {
         duration: 0.5,
-        delay: 0.3
+        ease: [0.25, 0.1, 0.25, 1]
       }
-    }
-  };
-  
-  const buttonVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 0.9,
       transition: {
         duration: 0.5,
-        delay: 0.5,
-        type: "spring",
-        stiffness: 100
+        ease: [0.25, 0.1, 0.25, 1]
       }
     }
   };
 
+  const handleViewFullGallery = () => {
+    window.open('https://www.tripadvisor.com/Attraction_Review-g293962-d11639139-Reviews-Su_Lanka_Tours-Colombo_Western_Province.html#/media-atf/11639139/?albumid=-160&type=0&category=-160', '_blank', 'noopener,noreferrer');
+  };
+  
   return (
-    <section ref={ref} id="gallery" className="section bg-gray-50 py-20 overflow-hidden">
+    <section id="gallery" className="section bg-gray-50 py-20 overflow-hidden" ref={ref}>
       <motion.div 
         className="container"
         variants={containerVariants}
@@ -294,24 +322,26 @@ const AnimatedImmersiveGallery = () => {
         
         <motion.div 
           ref={carouselRef}
-          className="gallery-carousel relative mt-12 overflow-hidden h-[70vh] user-select-none bg-gradient-to-br from-primary/5 to-secondary/10 rounded-xl"
+          className={`gallery-carousel relative mt-12 overflow-hidden ${
+            isMobile ? 'h-[60vh] md:h-[70vh]' : 'h-[70vh]'
+          } user-select-none bg-gradient-to-br from-primary/5 to-secondary/10 rounded-xl`}
           style={{ 
-            perspective: '1000px',
-            transformStyle: 'preserve-3d'
+            perspective: isMobile || isIOS ? 'none' : '1000px',
+            transformStyle: isMobile || isIOS ? 'flat' : 'preserve-3d'
           }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          variants={itemVariants}
+          variants={slideVariants}
         >
-          {/* Instruction text is now moved BEFORE the cards to ensure it appears behind them */}
+          {/* Instruction text - Updated with correct messages that respond to screen size */}
           <motion.div 
-            className="absolute top-8 left-8 text-primary/80 text-lg font-light"
-            style={{ zIndex: 1 }} // Lower z-index ensures it appears behind cards
-            variants={textVariants}
+            className="absolute top-8 left-8 text-primary/80 text-base md:text-lg font-light z-10"
+            variants={slideVariants}
+            key={isMobile ? 'mobile' : 'desktop'} // Force re-render when device changes
           >
-            <span className="font-medium">Scroll</span> or <span className="font-medium">drag</span> to explore
+            <span className="font-medium">
+              {isMobile ? 'Tap' : 'Click'}
+            </span> or <span className="font-medium">
+              {isMobile ? 'slide' : 'scroll'}
+            </span> to explore
           </motion.div>
           
           {GALLERY_IMAGES.map((image, index) => {
@@ -319,11 +349,15 @@ const AnimatedImmersiveGallery = () => {
             const zIndex = getZindex(active)[index];
             const activeOffset = (index-active)/GALLERY_IMAGES.length;
             
-            // Calculate transforms
-            const x = activeOffset * 800;
-            const y = activeOffset * 200;
-            const rot = activeOffset * 120;
+            // Calculate transforms - Enhanced for mobile
+            const x = activeOffset * (isMobile ? 600 : 800);
+            const y = activeOffset * (isMobile ? 150 : 200);
+            const rot = activeOffset * (isMobile ? 80 : 120);
             const opacity = zIndex / GALLERY_IMAGES.length * 3 - 2;
+            
+            // Mobile-specific sizing
+            const cardWidth = isMobile ? 'clamp(200px, 45vw, 350px)' : 'clamp(150px, 30vw, 300px)';
+            const cardHeight = isMobile ? 'clamp(280px, 55vw, 450px)' : 'clamp(200px, 40vw, 400px)';
             
             return (
               <motion.div 
@@ -331,16 +365,18 @@ const AnimatedImmersiveGallery = () => {
                 ref={el => itemsRef.current[index] = el}
                 className="carousel-item absolute rounded-lg overflow-hidden cursor-pointer"
                 style={{
-                  zIndex: zIndex + 10, // Increased z-index to ensure cards appear above instruction text
-                  width: 'clamp(150px, 30vw, 300px)',
-                  height: 'clamp(200px, 40vw, 400px)',
+                  zIndex: zIndex + 10,
+                  width: cardWidth,
+                  height: cardHeight,
                   top: '50%',
                   left: '50%',
-                  margin: 'calc(clamp(200px, 40vw, 400px) * -0.5) 0 0 calc(clamp(150px, 30vw, 300px) * -0.5)',
-                  boxShadow: '0 10px 50px 10px rgba(0, 0, 0, .5)',
+                  margin: `calc(${cardHeight} * -0.5) 0 0 calc(${cardWidth} * -0.5)`,
+                  boxShadow: isMobile || isIOS ? '0 5px 25px 5px rgba(0, 0, 0, .3)' : '0 10px 50px 10px rgba(0, 0, 0, .5)',
                   background: 'black',
                   transformOrigin: '0% 100%',
-                  transform: `translate(${x}%, ${y}%) rotate(${rot}deg)`,
+                  transform: isMobile || isIOS ? 
+                    `translate(${x}%, ${y}%)` : 
+                    `translate(${x}%, ${y}%) rotate(${rot}deg)`,
                   transition: 'transform 0.8s cubic-bezier(0, 0.02, 0, 1)'
                 }}
                 onClick={() => handleItemClick(index)}
@@ -372,7 +408,7 @@ const AnimatedImmersiveGallery = () => {
                   <div 
                     className="absolute z-10 text-white bottom-5 left-5"
                     style={{
-                      fontSize: 'clamp(20px, 3vw, 30px)',
+                      fontSize: isMobile ? 'clamp(16px, 4vw, 24px)' : 'clamp(20px, 3vw, 30px)',
                       fontWeight: 'bold',
                       textShadow: '0 4px 4px rgba(0, 0, 0, 0.1)',
                       transition: 'opacity 0.8s cubic-bezier(0, 0.02, 0, 1)'
@@ -385,7 +421,7 @@ const AnimatedImmersiveGallery = () => {
                   <div 
                     className="absolute z-10 text-white top-2 left-5"
                     style={{
-                      fontSize: 'clamp(20px, 10vw, 80px)',
+                      fontSize: isMobile ? 'clamp(24px, 8vw, 48px)' : 'clamp(20px, 10vw, 80px)',
                       transition: 'opacity 0.8s cubic-bezier(0, 0.02, 0, 1)'
                     }}
                   >
@@ -410,7 +446,7 @@ const AnimatedImmersiveGallery = () => {
         
         <motion.div 
           className="mt-12 text-center"
-          variants={buttonVariants}
+          variants={containerVariants}
         >
           <motion.p 
             className="text-gray-600 mb-6 max-w-2xl mx-auto"
@@ -431,11 +467,21 @@ const AnimatedImmersiveGallery = () => {
         </motion.div>
       </motion.div>
       
-      {/* Necessary CSS for the carousel */}
+      {/* Enhanced CSS for mobile and iOS */}
       <style>{`
         .gallery-carousel {
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
           padding: 20px 0;
+          /* iOS Safari optimizations */
+          -webkit-overflow-scrolling: touch;
+          touch-action: none;
+        }
+        
+        .carousel-item {
+          /* Ensure better performance on iOS */
+          -webkit-transform: translateZ(0);
+          -webkit-backface-visibility: hidden;
+          -webkit-perspective: 1000;
         }
         
         .layout::before {
@@ -456,13 +502,34 @@ const AnimatedImmersiveGallery = () => {
           box-shadow: 0 0 15px #0a4c8c, 0 0 30px rgba(10, 76, 140, 0.3);
         }
         
+        /* iOS specific optimizations */
+        @supports (-webkit-touch-callout: none) {
+          .gallery-carousel {
+            transform-style: flat !important;
+            perspective: none !important;
+          }
+          
+          .carousel-item {
+            transform-style: flat !important;
+            -webkit-transform-style: flat !important;
+          }
+        }
+        
+        /* Mobile specific styles */
+        @media (max-width: 768px) {
+          .gallery-carousel {
+            padding: 15px 0;
+          }
+          
+          .carousel-item {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+          }
+        }
+        
         @media (prefers-reduced-motion: reduce) {
           .carousel-item {
             transition: none !important;
-          }
-          
-          .cursor, .cursor2 {
-            display: none !important;
+            transform: none !important;
           }
         }
       `}</style>

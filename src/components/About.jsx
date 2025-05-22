@@ -31,7 +31,7 @@ const About = () => {
     if (inView) {
       controls.start('visible');
       
-      // Animate stat counters
+      // Animate stat counters - Much faster
       statCounters.current.forEach((counter, index) => {
         const targetValue = getTargetValue(index);
         animateCounter(counter, targetValue);
@@ -71,12 +71,12 @@ const About = () => {
     };
   }, []);
   
-  // Helper function to animate stat counters
+  // Helper function to animate stat counters - Much faster duration
   const animateCounter = (element, target) => {
     if (!element) return;
     
     let start = 0;
-    const duration = 2000;
+    const duration = 800; // Reduced from 2000ms to 800ms
     const startTime = performance.now();
     
     const updateCounter = (currentTime) => {
@@ -109,17 +109,19 @@ const About = () => {
     }
   };
   
+  // Much faster container animations
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
+        staggerChildren: 0.08, // Reduced from 0.2 to 0.08
+        delayChildren: 0.1,    // Reduced from 0.3 to 0.1
       },
     },
   };
   
+  // Much faster item animations
   const itemVariants = {
     hidden: { y: 30, opacity: 0 },
     visible: {
@@ -127,8 +129,8 @@ const About = () => {
       opacity: 1,
       transition: {
         type: "spring",
-        stiffness: 100,
-        damping: 10
+        stiffness: 200, // Increased from 100 to 200
+        damping: 15     // Increased from 10 to 15
       }
     },
   };
@@ -143,7 +145,7 @@ const About = () => {
     
     return {
       transform: `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.05, 1.05, 1.05)`,
-      transition: x === 0 && y === 0 ? "transform 0.6s ease-out" : "none"
+      transition: x === 0 && y === 0 ? "transform 0.3s ease-out" : "none" // Reduced from 0.6s to 0.3s
     };
   };
   
@@ -177,14 +179,14 @@ const About = () => {
         />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 items-center mt-16">
-          {/* 3D Interactive Image */}
+          {/* 3D Interactive Image - Much faster animation */}
           <motion.div 
             ref={imageRef}
             className="relative order-2 md:order-1 w-64 sm:w-80 md:w-full mx-auto"
             initial={{ opacity: 0, x: -50 }}
             animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
             transition={{ 
-              duration: 0.8,
+              duration: 0.4, // Reduced from 0.8 to 0.4
               ease: [0.25, 0.1, 0.25, 1]
             }}
           >
@@ -221,7 +223,7 @@ const About = () => {
                   }}
                 ></div>
                 
-                {/* Fixed SVG border with proper React props */}
+                {/* Animated SVG border - Much faster */}
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none z-10"
                   viewBox="0 0 100 100"
@@ -239,32 +241,32 @@ const About = () => {
                     strokeDasharray="400"
                     initial={{ strokeDashoffset: 400 }}
                     animate={inView ? { strokeDashoffset: 0 } : { strokeDashoffset: 400 }}
-                    transition={{ duration: 2, ease: "easeInOut" }}
+                    transition={{ duration: 0.8, ease: "easeInOut" }} // Reduced from 2s to 0.8s
                     vectorEffect="non-scaling-stroke"
                   />
                 </svg>
               </div>
             </motion.div>
             
-            {/* 3D decorative elements */}
-            <div className="absolute -bottom-6 -right-6 w-2/3 h-2/3 bg-primary/10 rounded-lg -z-10 transform -rotate-3"></div>
-            <div className="absolute -top-6 -left-6 w-1/2 h-1/2 bg-secondary/10 rounded-lg -z-10 transform rotate-6"></div>
+            {/* 3D decorative elements - Adjusted for smaller image */}
+            <div className="absolute -bottom-4 -right-4 md:-bottom-6 md:-right-6 w-2/3 h-2/3 bg-primary/10 rounded-lg -z-10 transform -rotate-3"></div>
+            <div className="absolute -top-4 -left-4 md:-top-6 md:-left-6 w-1/2 h-1/2 bg-secondary/10 rounded-lg -z-10 transform rotate-6"></div>
             
-            {/* Floating detail card */}
+            {/* Floating detail card - Much faster */}
             <motion.div
-              className="absolute -bottom-10 -right-10 bg-white p-4 rounded-lg shadow-xl z-20 w-32 md:w-40"
+              className="absolute -bottom-8 -right-8 md:-bottom-10 md:-right-10 bg-white p-3 md:p-4 rounded-lg shadow-xl z-20 w-28 md:w-32 lg:w-40"
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={inView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.8, y: 20 }}
-              transition={{ delay: 1, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.3 }} // Reduced delay from 1s to 0.2s, duration from 0.5s to 0.3s
               whileHover={{ 
                 scale: 1.05,
                 boxShadow: "0 20px 30px rgba(0, 0, 0, 0.15)",
                 rotate: -2
               }}
             >
-              <p className="text-primary text-sm font-medium">Established</p>
-              <p className="text-2xl font-bold">2014</p>
-              <div className="h-1 w-10 bg-secondary mt-1"></div>
+              <p className="text-primary text-xs md:text-sm font-medium">Established</p>
+              <p className="text-xl md:text-2xl font-bold">2014</p>
+              <div className="h-1 w-8 md:w-10 bg-secondary mt-1"></div>
             </motion.div>
           </motion.div>
           
@@ -303,7 +305,7 @@ const About = () => {
               What sets us apart is our attention to detail and personalized service. We believe that travel should be transformative, not transactional. With Su Lanka Tours, you'll discover not just the popular attractions but also the hidden gems that make Sri Lanka truly special.
             </motion.p>
             
-            {/* 3D Stat cards */}
+            {/* 3D Stat cards - Much faster hover animations */}
             <motion.div 
               variants={itemVariants}
               className="grid grid-cols-2 gap-4 mt-8"
@@ -322,10 +324,10 @@ const About = () => {
                     scale: 1.02,
                     boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
                   }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  transition={{ type: "spring", stiffness: 600, damping: 20 }} // Much faster spring
                 >
                   {/* Background decoration */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></div>
                   
                   <div 
                     className="text-primary text-3xl font-bold mb-2 flex items-end"
@@ -338,28 +340,46 @@ const About = () => {
                   <div className="text-gray-700 text-sm">{stat.label}</div>
                   
                   {/* Decorative background element */}
-                  <div className="absolute -right-2 -bottom-2 w-12 h-12 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors duration-300"></div>
+                  <div className="absolute -right-2 -bottom-2 w-12 h-12 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors duration-200"></div>
                 </motion.div>
               ))}
             </motion.div>
             
-            {/* Call to action button */}
+            {/* Call to action button with TripAdvisor logo */}
             <motion.button
               variants={itemVariants}
               className="mt-8 bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg 
-                shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1
+                shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1
                 flex items-center group"
               whileTap={{ scale: 0.95 }}
+              onClick={() => window.open('https://www.tripadvisor.com/Attraction_Review-g293962-d11639139-Reviews-Su_Lanka_Tours-Colombo_Western_Province.html', '_blank')}
             >
               Learn More About Us
+              {/* TripAdvisor Logo SVG */}
               <svg 
-                className="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" 
+                className="ml-2 w-4 h-4" 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 1333.31 1333.31" 
+                shapeRendering="geometricPrecision" 
+                textRendering="geometricPrecision" 
+                imageRendering="optimizeQuality" 
+                fillRule="evenodd" 
+                clipRule="evenodd"
+              >
+                <g fillRule="nonzero">
+                  <circle cx="666.66" cy="666.66" r="666.66" fill="#34e0a1"/>
+                  <path d="M1078.42 536.6l80.45-87.52h-178.4c-89.31-61.01-197.17-96.54-313.81-96.54-116.5 0-224.06 35.61-313.22 96.54H174.6l80.44 87.52c-49.31 44.99-80.22 109.8-80.22 181.75 0 135.79 110.09 245.88 245.88 245.88 64.51 0 123.27-24.88 167.14-65.55l78.81 85.81 78.81-85.73c43.87 40.67 102.57 65.47 167.07 65.47 135.79 0 246.03-110.09 246.03-245.88.07-72.03-30.84-136.83-80.15-181.75zM420.77 884.75c-91.92 0-166.4-74.48-166.4-166.4s74.49-166.4 166.4-166.4c91.92 0 166.4 74.49 166.4 166.4 0 91.91-74.49 166.4-166.4 166.4zm245.96-171.24c0-109.5-79.63-203.5-184.73-243.65 56.84-23.76 119.18-36.94 184.66-36.94 65.47 0 127.89 13.18 184.73 36.94-105.02 40.23-184.65 134.15-184.65 243.65zm245.88 171.24c-91.92 0-166.4-74.48-166.4-166.4s74.49-166.4 166.4-166.4c91.92 0 166.4 74.49 166.4 166.4 0 91.91-74.49 166.4-166.4 166.4zm0-253.7c-48.2 0-87.23 39.03-87.23 87.23 0 48.19 39.03 87.22 87.23 87.22 48.19 0 87.22-39.03 87.22-87.22 0-48.12-39.03-87.23-87.22-87.23zM508 718.35c0 48.19-39.03 87.22-87.23 87.22-48.19 0-87.22-39.03-87.22-87.22 0-48.2 39.03-87.23 87.22-87.23 48.19-.07 87.23 39.03 87.23 87.23z"/>
+                </g>
+              </svg>
+              {/* External link arrow */}
+              <svg 
+                className="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24" 
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
               </svg>
             </motion.button>
           </motion.div>
