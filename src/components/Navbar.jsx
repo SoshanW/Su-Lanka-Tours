@@ -127,7 +127,9 @@ const Navbar = () => {
     <>
       <motion.header
         className={`fixed top-0 left-0 w-full z-40 transition-all duration-300 ${
-          isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg py-2' : 'bg-transparent py-4'
+          isScrolled 
+            ? 'bg-white/95 backdrop-blur-md shadow-lg py-2' 
+            : 'bg-white/30 backdrop-blur-sm py-4'
         }`}
         initial="hidden"
         animate="visible"
@@ -139,7 +141,7 @@ const Navbar = () => {
             <motion.img 
               src="/images/logo.png" 
               alt="Su Lanka Tours" 
-              className="h-10 md:h-12" 
+              className={`h-10 md:h-12 ${!isScrolled ? 'drop-shadow-lg' : ''}`}
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 300, damping: 10 }}
               onError={(e) => {
