@@ -22,8 +22,8 @@ function App() {
     setIsIOS(iOS);
     setIsMobile(mobile);
     
-    // Skip video on iOS due to autoplay restrictions
-    if (iOS) {
+    // Skip video on iOS and mobile devices
+    if (iOS || mobile) {
       setVideoEnded(true);
       document.body.style.overflow = '';
     }
@@ -31,9 +31,9 @@ function App() {
     console.log('Device detection:', { iOS, mobile });
   }, []);
   
-  // Prevent scrolling during video (only for non-iOS devices)
+  // Prevent scrolling during video (only for non-mobile devices)
   useEffect(() => {
-    if (!isIOS && !videoEnded) {
+    if (!isMobile && !videoEnded) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -42,7 +42,7 @@ function App() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [videoEnded, isIOS]);
+  }, [videoEnded, isMobile]);
   
   // Preload critical images
   useEffect(() => {
@@ -84,8 +84,8 @@ function App() {
         )}
       </Helmet>
       
-      {/* Only show intro video on non-iOS devices */}
-      {!videoEnded && !isIOS && (
+      {/* Only show intro video on non-mobile devices */}
+      {!videoEnded && !isMobile && (
         <IntroVideo onVideoEnd={() => setVideoEnded(true)} />
       )}
       
