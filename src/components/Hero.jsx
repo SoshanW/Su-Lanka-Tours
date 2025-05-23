@@ -403,14 +403,14 @@
               <Button 
                 variant="outline" 
                 size={screenSize === 'sm' ? 'md' : 'lg'}
-                className={`relative overflow-hidden group w-full sm:w-auto ${!isMobile ? 'transform transition hover:scale-105' : ''} backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-primary transition-all duration-300`}
+                className={`relative overflow-hidden group w-full sm:w-auto ${!isMobile ? 'transform transition hover:scale-105' : ''} backdrop-blur-sm border-2 border-white text-white hover:bg-white/10 hover:text-white transition-all duration-300`}
                 onClick={() => {
                   document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
                 <span className="relative z-10">Contact Us</span>
                 {!isMobile && (
-                  <span className="absolute inset-0 w-full h-full bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></span>
+                  <span className="absolute inset-0 w-full h-full bg-white/10 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></span>
                 )}
               </Button>
             </motion.div>
