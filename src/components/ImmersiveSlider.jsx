@@ -471,7 +471,7 @@ const FastAutoplaySlider = () => {
         }
         
         .slide__header {
-          z-index: 9;
+          z-index: 99;
           position: relative;
           height: 100%;
           display: flex;
@@ -495,6 +495,8 @@ const FastAutoplaySlider = () => {
           overflow-y: hidden;
           text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
           will-change: transform, opacity;
+          position: relative;
+          z-index: 99;
         }
         
         @media (min-width: 54em) {
@@ -507,6 +509,8 @@ const FastAutoplaySlider = () => {
         .title-line {
           display: block;
           overflow-y: hidden;
+          position: relative;
+          z-index: 99;
         }
         
         .title-line span {
@@ -515,6 +519,8 @@ const FastAutoplaySlider = () => {
           opacity: 0;
           transition: transform 0.2s ease, opacity 0.2s ease;
           will-change: transform, opacity;
+          position: relative;
+          z-index: 99;
         }
         
         .title-line:nth-child(1) span {
@@ -536,7 +542,7 @@ const FastAutoplaySlider = () => {
         }
         
         .slide__figure {
-          z-index: 7;
+          z-index: 1;
           position: absolute;
           left: 0;
           right: 0;
