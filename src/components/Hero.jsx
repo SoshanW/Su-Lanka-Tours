@@ -196,7 +196,7 @@
       const baseClasses = "text-white font-light backdrop-blur-sm bg-white/5 inline-block px-3 sm:px-4 md:px-6 py-2 rounded-full mb-6 sm:mb-8";
       switch (screenSize) {
         case 'sm':
-          return `${baseClasses} text-base`;
+          return `${baseClasses} text-base bg-transparent`;
         case 'md':
           return `${baseClasses} text-lg`;
         default:
@@ -389,7 +389,7 @@
               <Button 
                 variant="primary" 
                 size={screenSize === 'sm' ? 'md' : 'lg'}
-                className={`relative overflow-hidden group w-full sm:w-auto ${!isMobile ? 'transform transition hover:scale-105 hover:shadow-glow' : ''}`}
+                className={`relative overflow-hidden group w-full sm:w-auto ${!isMobile ? 'transform transition hover:scale-105 hover:shadow-glow' : ''} bg-primary hover:bg-primary/90`}
                 onClick={() => {
                   document.getElementById('experiences')?.scrollIntoView({ behavior: 'smooth' });
                 }}
@@ -498,13 +498,30 @@
           
           /* iOS button optimizations */
           .ios-hero button {
-            background: transparent !important;
             backdrop-filter: blur(8px) !important;
             -webkit-backdrop-filter: blur(8px) !important;
           }
           
-          .ios-hero button:hover {
+          .ios-hero button[data-variant="primary"] {
+            background: #0a4c8c !important;
+            transition: all 0.3s ease !important;
+          }
+          
+          .ios-hero button[data-variant="primary"]:hover {
+            background: rgba(10, 76, 140, 0.9) !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 0 15px #0a4c8c, 0 0 30px rgba(10, 76, 140, 0.3) !important;
+          }
+          
+          .ios-hero button[data-variant="outline"] {
+            background: transparent !important;
+            border: 2px solid white !important;
+            color: white !important;
+          }
+          
+          .ios-hero button[data-variant="outline"]:hover {
             background: rgba(255, 255, 255, 0.1) !important;
+            transform: scale(1.05) !important;
           }
           
           /* Mobile-specific adjustments */
