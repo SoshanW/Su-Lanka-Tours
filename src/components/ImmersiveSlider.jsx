@@ -8,9 +8,27 @@ const FastAutoplaySlider = () => {
   // State to track current slide
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   const autoplayIntervalRef = useRef(null);
   const sliderRef = useRef(null);
   
+  // Device detection
+  useEffect(() => {
+    const checkDevice = () => {
+      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const mobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      
+      setIsIOS(iOS);
+      setIsMobile(mobile);
+    };
+    
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
   // Animation controls for scroll-based animations
   const controls = useAnimation();
   const { ref, inView } = useInView({
@@ -51,21 +69,19 @@ const FastAutoplaySlider = () => {
     }
   ];
   
-  // Handle slide transition
+  // Handle slide transition with optimized timing for mobile
   const goToSlide = (index, dir) => {
     if (isSliding) return;
     
-    // Stop autoplay during transition
     stopAutoplay();
-    
     setIsSliding(true);
     setCurrentSlideIndex(index);
     
-    // Reset sliding state after animation completes
+    // Faster transition for mobile devices
     setTimeout(() => {
       setIsSliding(false);
-      startAutoplay(); // Restart autoplay after transition
-    }, 350); // Faster animation time
+      startAutoplay();
+    }, isMobile ? 250 : 350);
   };
   
   // Navigate to next slide
@@ -101,15 +117,18 @@ const FastAutoplaySlider = () => {
     }
   }, [isSliding, inView]);
   
-  // Start autoplay timer - fast speed
+  // Optimized autoplay timing for mobile
   const startAutoplay = () => {
     if (autoplayIntervalRef.current) {
       clearInterval(autoplayIntervalRef.current);
     }
     
+    // Slower autoplay on mobile for better performance
+    const interval = isMobile ? 3000 : 1800;
+    
     autoplayIntervalRef.current = setInterval(() => {
       nextSlide();
-    }, 1800); // Faster autoplay - every 1.8 seconds
+    }, interval);
   };
   
   // Stop autoplay timer
@@ -346,7 +365,7 @@ const FastAutoplaySlider = () => {
           pointer-events: none;
         }
         
-        /* Slides - Added 3D pop effect */
+        /* Slides - Optimized for mobile */
         .slides {
           position: relative;
           display: block;
@@ -356,10 +375,10 @@ const FastAutoplaySlider = () => {
           margin: 0 auto;
           background: #fff;
           transform: translateZ(0);
-          box-shadow: 
-            0 10px 30px rgba(0, 0, 0, 0.15), 
-            0 15px 35px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
           transition: background 0.3s cubic-bezier(.99, 1, .92, 1);
+          will-change: transform;
+          -webkit-overflow-scrolling: touch;
         }
         
         .is-sliding .slides {
@@ -367,19 +386,20 @@ const FastAutoplaySlider = () => {
           transition: background 0.3s cubic-bezier(.99, 1, .92, 1);
         }
         
-        /* Single Slide */
+        /* Single Slide - Optimized transitions */
         .slide {
           z-index: -1;
           padding: 0;
           position: absolute;
           width: 100%;
           height: 100%;
-          transition: z-index 0.4s ease; /* Faster transition */
+          transition: z-index 0.3s ease;
+          will-change: transform, opacity;
         }
         
         .slide.is-active {
           z-index: 19;
-          transition: z-index 0.4s ease; /* Faster transition */
+          transition: z-index 0.3s ease;
         }
         
         .slide__content {
@@ -388,6 +408,7 @@ const FastAutoplaySlider = () => {
           height: 95%;
           width: 95%;
           top: 2.5%;
+          transform: translateZ(0);
         }
         
         @media (min-width: 54em) {
@@ -406,6 +427,7 @@ const FastAutoplaySlider = () => {
           align-items: center;
           overflow-y: hidden;
           transform: translateX(5%);
+          will-change: transform;
         }
         
         @media (min-width: 54em) {
@@ -420,15 +442,14 @@ const FastAutoplaySlider = () => {
           font-weight: 700;
           color: #ffffff;
           overflow-y: hidden;
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
-                       -2px -2px 4px rgba(0, 0, 0, 0.5);
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+          will-change: transform, opacity;
         }
         
         @media (min-width: 54em) {
           .slide__title {
             font-size: 5em;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6),
-                         -3px -3px 6px rgba(0, 0, 0, 0.6);
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
           }
         }
         
@@ -441,25 +462,26 @@ const FastAutoplaySlider = () => {
           display: inline-block;
           transform: translate3d(0, 140%, 0);
           opacity: 0;
-          transition: transform 0.2s ease, opacity 0.3s ease; /* Faster transition */
+          transition: transform 0.2s ease, opacity 0.2s ease;
+          will-change: transform, opacity;
         }
         
         .title-line:nth-child(1) span {
-          transition-delay: 0.1s; /* Faster transition */
+          transition-delay: 0.1s;
         }
         
         .title-line:nth-child(2) span {
-          transition-delay: 0.15s; /* Faster transition */
+          transition-delay: 0.15s;
         }
         
         .is-active .title-line span {
           transform: translate3d(0, 0%, 0);
           opacity: 1;
-          transition: transform 0.3s cubic-bezier(.77, 0, .175, 1), opacity 0.1s ease; /* Faster transition */
+          transition: transform 0.3s cubic-bezier(.77, 0, .175, 1), opacity 0.2s ease;
         }
         
         .is-active .title-line:nth-of-type(2n) span {
-          transition-delay: 0.15s; /* Faster transition */
+          transition-delay: 0.15s;
         }
         
         .slide__figure {
@@ -470,35 +492,83 @@ const FastAutoplaySlider = () => {
           margin: 0 auto;
           height: 100%;
           width: 100%;
-          transition: transform 0.25s cubic-bezier(.19, 1, .22, 1); /* Faster transition */
+          transition: transform 0.25s cubic-bezier(.19, 1, .22, 1);
+          will-change: transform;
         }
         
         .is-sliding .slide__figure {
           transform: scale(0.8);
-          transition: transform 0.25s cubic-bezier(.19, 1, .22, 1); /* Faster transition */
+          transition: transform 0.25s cubic-bezier(.19, 1, .22, 1);
         }
         
         .slide__img {
           position: relative;
           display: block;
           background-size: cover;
-          background-attachment: fixed;
           background-position: 50%;
           -webkit-backface-visibility: hidden;
           height: 0%;
           width: 100%;
           filter: grayscale(0%);
-          transition: height 0.4s 0.5s cubic-bezier(.19, 1, .22, 1), filter 0.2s ease; /* Faster transition */
+          transition: height 0.4s cubic-bezier(.19, 1, .22, 1), filter 0.2s ease;
+          will-change: height, filter;
+          transform: translateZ(0);
         }
         
         .is-active .slide__img {
           height: 100%;
           opacity: 1;
-          transition: height 0.3s 0.1s cubic-bezier(.77, 0, .175, 1), filter 0.2s ease; /* Faster transition */
+          transition: height 0.3s cubic-bezier(.77, 0, .175, 1), filter 0.2s ease;
         }
         
         .is-sliding .slide__img {
           filter: grayscale(80%);
+        }
+
+        /* Mobile and iOS optimizations */
+        @media (max-width: 768px) {
+          .slides {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          }
+          
+          .slide__title {
+            font-size: 2em;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+          }
+          
+          .slide__img {
+            transition: height 0.3s cubic-bezier(.77, 0, .175, 1);
+          }
+        }
+
+        /* iOS specific optimizations */
+        @supports (-webkit-touch-callout: none) {
+          .slides {
+            -webkit-transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            -webkit-perspective: 1000;
+          }
+          
+          .slide__img {
+            -webkit-transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+          }
+          
+          .slide__title {
+            -webkit-transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+          }
+        }
+
+        /* Reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+          .slide,
+          .slide__img,
+          .slide__title,
+          .title-line span {
+            transition: none !important;
+            animation: none !important;
+          }
         }
       `}</style>
     </section>
