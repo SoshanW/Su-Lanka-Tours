@@ -50,6 +50,8 @@ const EnhancedExperienceSlider = () => {
   const [sliding, setSliding] = useState(false);
   const [direction, setDirection] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   const intervalRef = useRef(null);
   const containerRef = useRef(null);
   const sliderRef = useRef(null);
@@ -108,6 +110,54 @@ const EnhancedExperienceSlider = () => {
       }
     };
   }, []);
+  
+  // Add touch event handlers
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe) {
+      goToNext();
+    } else if (isRightSwipe) {
+      goToPrev();
+    }
+    
+    // Reset touch values
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (sliding) return; // Prevent navigation during slide transition
+      
+      switch(e.key) {
+        case 'ArrowLeft':
+          goToPrev();
+          break;
+        case 'ArrowRight':
+          goToNext();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeIndex, sliding]);
   
   const startAutoplay = () => {
     // Clear any existing interval
@@ -223,6 +273,9 @@ const EnhancedExperienceSlider = () => {
             className="relative mx-auto max-w-4xl perspective"
             ref={sliderRef}
             style={getPerspectiveStyle(5)}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             {/* 3D Decorative Background Elements */}
             <div className="absolute -top-16 -left-16 w-32 h-32 bg-primary/5 rounded-full z-0 transform rotate-12 opacity-40"></div>
@@ -419,6 +472,17 @@ const EnhancedExperienceSlider = () => {
                 <div className="absolute inset-0 rounded-full bg-white opacity-0 hover:opacity-10 transition-opacity"></div>
               </button>
             </div>
+            
+            {/* Add touch swipe indicators for mobile */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 text-white/70 text-sm md:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-bounce-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Swipe to navigate</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-bounce-x-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </div>
           
           {/* Enhanced Navigation Dots with 3D Effect */}
@@ -495,11 +559,42 @@ const EnhancedExperienceSlider = () => {
           box-shadow: 0 0 15px #0a4c8c, 0 0 30px rgba(10, 76, 140, 0.3);
         }
         
+        /* Touch swipe animations */
+        @keyframes bounce-x {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-5px); }
+        }
+        
+        @keyframes bounce-x-reverse {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(5px); }
+        }
+        
+        .animate-bounce-x {
+          animation: bounce-x 1s infinite;
+        }
+        
+        .animate-bounce-x-reverse {
+          animation: bounce-x-reverse 1s infinite;
+        }
+        
         /* Ensure items are visible on fallback */
         @media (prefers-reduced-motion: reduce) {
           .transform-style-3d {
             transform-style: flat !important;
             transform: none !important;
+          }
+          
+          .animate-bounce-x,
+          .animate-bounce-x-reverse {
+            animation: none !important;
+          }
+        }
+        
+        /* iOS specific touch handling */
+        @supports (-webkit-touch-callout: none) {
+          .perspective {
+            -webkit-overflow-scrolling: touch;
           }
         }
       `}}></style>

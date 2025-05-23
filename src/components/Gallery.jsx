@@ -98,6 +98,8 @@ const AnimatedImmersiveGallery = () => {
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
   
   const carouselRef = useRef(null);
   const itemsRef = useRef([]);
@@ -307,6 +309,37 @@ const AnimatedImmersiveGallery = () => {
     window.open('https://www.tripadvisor.com/Attraction_Review-g293962-d11639139-Reviews-Su_Lanka_Tours-Colombo_Western_Province.html#/media-atf/11639139/?albumid=-160&type=0&category=-160', '_blank', 'noopener,noreferrer');
   };
   
+  // Enhanced touch handlers for mobile
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50; // Minimum distance for swipe
+    
+    if (Math.abs(distance) > minSwipeDistance) {
+      if (distance > 0) {
+        // Swipe left - go to next
+        setProgress(prev => Math.min(prev + 20, 100));
+      } else {
+        // Swipe right - go to previous
+        setProgress(prev => Math.max(prev - 20, 0));
+      }
+    }
+    
+    // Reset touch values
+    setTouchStartX(0);
+    setTouchEndX(0);
+  };
+  
   return (
     <section id="gallery" className="section bg-gray-50 py-20 overflow-hidden" ref={ref}>
       <motion.div 
@@ -326,38 +359,41 @@ const AnimatedImmersiveGallery = () => {
             isMobile ? 'h-[60vh] md:h-[70vh]' : 'h-[70vh]'
           } user-select-none bg-gradient-to-br from-primary/5 to-secondary/10 rounded-xl`}
           style={{ 
-            perspective: isMobile || isIOS ? 'none' : '1000px',
-            transformStyle: isMobile || isIOS ? 'flat' : 'preserve-3d'
+            perspective: '1000px',
+            transformStyle: 'preserve-3d'
           }}
           variants={slideVariants}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          {/* Instruction text - Updated with correct messages that respond to screen size */}
-          <motion.div 
-            className="absolute top-8 left-8 text-primary/80 text-base md:text-lg font-light z-10"
-            variants={slideVariants}
-            key={isMobile ? 'mobile' : 'desktop'} // Force re-render when device changes
-          >
-            <span className="font-medium">
-              {isMobile ? 'Tap' : 'Click'}
-            </span> or <span className="font-medium">
-              {isMobile ? 'slide' : 'scroll'}
-            </span> to explore
-          </motion.div>
+          {/* Mobile swipe indicator */}
+          {isMobile && (
+            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 text-primary/80 text-sm z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-bounce-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Swipe to explore</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-bounce-x-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          )}
           
           {GALLERY_IMAGES.map((image, index) => {
             // Calculate styles based on active index
             const zIndex = getZindex(active)[index];
             const activeOffset = (index-active)/GALLERY_IMAGES.length;
             
-            // Calculate transforms - Enhanced for mobile
-            const x = activeOffset * (isMobile ? 600 : 800);
-            const y = activeOffset * (isMobile ? 150 : 200);
-            const rot = activeOffset * (isMobile ? 80 : 120);
+            // Calculate transforms - Consistent for all devices
+            const x = activeOffset * 800;
+            const y = activeOffset * 200;
+            const rot = activeOffset * 120;
             const opacity = zIndex / GALLERY_IMAGES.length * 3 - 2;
             
-            // Mobile-specific sizing
-            const cardWidth = isMobile ? 'clamp(200px, 45vw, 350px)' : 'clamp(150px, 30vw, 300px)';
-            const cardHeight = isMobile ? 'clamp(280px, 55vw, 450px)' : 'clamp(200px, 40vw, 400px)';
+            // Consistent sizing for all devices
+            const cardWidth = 'clamp(200px, 45vw, 350px)';
+            const cardHeight = 'clamp(280px, 55vw, 450px)';
             
             return (
               <motion.div 
@@ -371,13 +407,13 @@ const AnimatedImmersiveGallery = () => {
                   top: '50%',
                   left: '50%',
                   margin: `calc(${cardHeight} * -0.5) 0 0 calc(${cardWidth} * -0.5)`,
-                  boxShadow: isMobile || isIOS ? '0 5px 25px 5px rgba(0, 0, 0, .3)' : '0 10px 50px 10px rgba(0, 0, 0, .5)',
+                  boxShadow: '0 10px 50px 10px rgba(0, 0, 0, .5)',
                   background: 'black',
                   transformOrigin: '0% 100%',
-                  transform: isMobile || isIOS ? 
-                    `translate(${x}%, ${y}%)` : 
-                    `translate(${x}%, ${y}%) rotate(${rot}deg)`,
-                  transition: 'transform 0.8s cubic-bezier(0, 0.02, 0, 1)'
+                  transform: `translate(${x}%, ${y}%) rotate(${rot}deg)`,
+                  transition: 'transform 0.8s cubic-bezier(0, 0.02, 0, 1)',
+                  WebkitTransform: `translate(${x}%, ${y}%) rotate(${rot}deg)`,
+                  WebkitTransition: 'transform 0.8s cubic-bezier(0, 0.02, 0, 1)'
                 }}
                 onClick={() => handleItemClick(index)}
               >
@@ -472,46 +508,49 @@ const AnimatedImmersiveGallery = () => {
         .gallery-carousel {
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
           padding: 20px 0;
-          /* iOS Safari optimizations */
           -webkit-overflow-scrolling: touch;
-          touch-action: none;
+          touch-action: pan-y pinch-zoom;
+          transform-style: preserve-3d;
+          perspective: 1000px;
         }
         
         .carousel-item {
-          /* Ensure better performance on iOS */
           -webkit-transform: translateZ(0);
           -webkit-backface-visibility: hidden;
           -webkit-perspective: 1000;
+          transform-style: preserve-3d;
+          backface-visibility: hidden;
         }
         
-        .layout::before {
-          content: '';
-          position: absolute;
-          z-index: 1;
-          top: 0;
-          left: 90px;
-          width: 10px;
-          height: 100%;
-          border: 1px solid #fff;
-          border-top: none;
-          border-bottom: none;
-          opacity: .15;
+        /* Touch swipe animations */
+        @keyframes bounce-x {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-5px); }
         }
         
-        .hover\\:shadow-glow:hover {
-          box-shadow: 0 0 15px #0a4c8c, 0 0 30px rgba(10, 76, 140, 0.3);
+        @keyframes bounce-x-reverse {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(5px); }
+        }
+        
+        .animate-bounce-x {
+          animation: bounce-x 1s infinite;
+        }
+        
+        .animate-bounce-x-reverse {
+          animation: bounce-x-reverse 1s infinite;
         }
         
         /* iOS specific optimizations */
         @supports (-webkit-touch-callout: none) {
           .gallery-carousel {
-            transform-style: flat !important;
-            perspective: none !important;
+            transform-style: preserve-3d !important;
+            perspective: 1000px !important;
           }
           
           .carousel-item {
-            transform-style: flat !important;
-            -webkit-transform-style: flat !important;
+            transform-style: preserve-3d !important;
+            -webkit-transform-style: preserve-3d !important;
           }
         }
         
@@ -530,6 +569,11 @@ const AnimatedImmersiveGallery = () => {
           .carousel-item {
             transition: none !important;
             transform: none !important;
+          }
+          
+          .animate-bounce-x,
+          .animate-bounce-x-reverse {
+            animation: none !important;
           }
         }
       `}</style>
