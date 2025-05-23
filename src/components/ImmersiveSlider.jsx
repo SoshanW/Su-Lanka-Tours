@@ -10,6 +10,8 @@ const FastAutoplaySlider = () => {
   const [isSliding, setIsSliding] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
   const autoplayIntervalRef = useRef(null);
   const sliderRef = useRef(null);
   
@@ -211,6 +213,37 @@ const FastAutoplaySlider = () => {
     }
   };
   
+  // Touch event handlers
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50; // Minimum distance for swipe
+    
+    if (Math.abs(distance) > minSwipeDistance) {
+      if (distance > 0) {
+        // Swipe left - go to next
+        nextSlide();
+      } else {
+        // Swipe right - go to previous
+        prevSlide();
+      }
+    }
+    
+    // Reset touch values
+    setTouchStartX(0);
+    setTouchEndX(0);
+  };
+  
   return (
     <section 
       ref={ref}
@@ -260,19 +293,37 @@ const FastAutoplaySlider = () => {
         initial="hidden"
         animate={controls}
         ref={sliderRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        <motion.section 
-          className="slides-nav"
-          variants={navVariants}
-          initial="hidden"
-          animate={controls}
-        >
-        
-          <nav className="slides-nav__nav">
-            <button className="slides-nav__prev js-prev" onClick={prevSlide}>Prev</button>
-            <button className="slides-nav__next js-next" onClick={nextSlide}>Next</button>
-          </nav>
-        </motion.section>
+        {/* Only show navigation buttons on desktop */}
+        {!isMobile && (
+          <motion.section 
+            className="slides-nav"
+            variants={navVariants}
+            initial="hidden"
+            animate={controls}
+          >
+            <nav className="slides-nav__nav">
+              <button className="slides-nav__prev js-prev" onClick={prevSlide}>Prev</button>
+              <button className="slides-nav__next js-next" onClick={nextSlide}>Next</button>
+            </nav>
+          </motion.section>
+        )}
+
+        {/* Mobile swipe indicator */}
+        {isMobile && (
+          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 text-white/80 text-sm z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-bounce-x" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Swipe to explore</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-bounce-x-reverse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        )}
 
         {slides.map((slide, index) => (
           <section 
@@ -525,10 +576,30 @@ const FastAutoplaySlider = () => {
           filter: grayscale(80%);
         }
 
+        /* Touch swipe animations */
+        @keyframes bounce-x {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-5px); }
+        }
+        
+        @keyframes bounce-x-reverse {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(5px); }
+        }
+        
+        .animate-bounce-x {
+          animation: bounce-x 1s infinite;
+        }
+        
+        .animate-bounce-x-reverse {
+          animation: bounce-x-reverse 1s infinite;
+        }
+
         /* Mobile and iOS optimizations */
         @media (max-width: 768px) {
           .slides {
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            touch-action: pan-y pinch-zoom;
           }
           
           .slide__title {
@@ -539,6 +610,11 @@ const FastAutoplaySlider = () => {
           .slide__img {
             transition: height 0.3s cubic-bezier(.77, 0, .175, 1);
           }
+
+          /* Hide navigation on mobile */
+          .slides-nav {
+            display: none;
+          }
         }
 
         /* iOS specific optimizations */
@@ -547,6 +623,7 @@ const FastAutoplaySlider = () => {
             -webkit-transform: translateZ(0);
             -webkit-backface-visibility: hidden;
             -webkit-perspective: 1000;
+            touch-action: pan-y pinch-zoom;
           }
           
           .slide__img {
@@ -557,6 +634,11 @@ const FastAutoplaySlider = () => {
           .slide__title {
             -webkit-transform: translateZ(0);
             -webkit-backface-visibility: hidden;
+          }
+
+          /* Hide navigation on iOS */
+          .slides-nav {
+            display: none;
           }
         }
 

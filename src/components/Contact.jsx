@@ -712,7 +712,7 @@ const Contact = () => {
                     <span className="text-primary mr-2">Q.</span>
                     What payment methods do you accept?
                   </h4>
-                  <p className="text-gray-600 mt-1 pl-6">We accept credit cards, bank transfers, and PayPal. A 20% deposit is required to confirm your booking.</p>
+                  <p className="text-gray-600 mt-1 pl-6">We accept cash at hand, credit cards and bank transfers. A 20% deposit is required to confirm your booking.</p>
                 </div>
               </div>
               
