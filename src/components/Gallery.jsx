@@ -552,6 +552,13 @@ const AnimatedImmersiveGallery = () => {
             transform-style: preserve-3d !important;
             -webkit-transform-style: preserve-3d !important;
           }
+
+          /* iOS category tag styling */
+          .bg-black\\/30 {
+            background: transparent !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+          }
         }
         
         /* Mobile specific styles */

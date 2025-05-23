@@ -524,6 +524,13 @@
             transform: scale(1.05) !important;
           }
           
+          /* iOS subtitle styling */
+          .ios-hero .bg-white\\/5 {
+            background: transparent !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+          }
+          
           /* Mobile-specific adjustments */
           @media (max-width: 640px) {
             .perspective-text {
