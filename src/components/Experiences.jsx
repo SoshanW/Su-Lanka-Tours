@@ -528,7 +528,7 @@ const EnhancedExperienceSlider = () => {
       
       {/* Essential styles for 3D effects */}
       <style dangerouslySetInnerHTML={{
-  __html:`
+        __html:`
         .perspective {
           perspective: 2000px;
         }
@@ -591,10 +591,17 @@ const EnhancedExperienceSlider = () => {
           }
         }
         
-        /* iOS specific touch handling */
+        /* iOS specific touch handling and styling */
         @supports (-webkit-touch-callout: none) {
           .perspective {
             -webkit-overflow-scrolling: touch;
+          }
+          
+          /* iOS location indicator styling */
+          .bg-white\\/10 {
+            background: transparent !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
           }
         }
       `}}></style>
