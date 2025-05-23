@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useAnimation, useScroll, useTransform } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import emailjs from '@emailjs/browser';
 import SectionTitle from './ui/SectionTitle';
 import Button from './ui/Button';
 import { Phone, Mail, MapPin, Send, Check, ExternalLink } from 'lucide-react';
@@ -99,12 +100,28 @@ const Contact = () => {
     setFocused(null);
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setFormStatus({ submitting: true, submitted: false, error: null });
     
-    // Simulate form submission with loading animations
-    setTimeout(() => {
+    try {
+      // Initialize EmailJS with your public key
+      emailjs.init("S4ygNj7h8vr635jTy"); // Replace with your actual EmailJS public key
+      
+      // Send email using EmailJS
+      await emailjs.send(
+        "service_r3dff3m", // Replace with your EmailJS service ID
+        "template_0mjjrji", // Replace with your EmailJS template ID
+        {
+          to_email: "soshanw123@gmail.com",
+          from_name: formData.name,
+          from_email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+        }
+      );
+      
       setFormStatus({ submitting: false, submitted: true, error: null });
       
       // Reset form after successful submission
@@ -120,7 +137,14 @@ const Contact = () => {
       setTimeout(() => {
         setFormStatus((prev) => ({ ...prev, submitted: false }));
       }, 5000);
-    }, 1500);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setFormStatus({
+        submitting: false,
+        submitted: false,
+        error: 'Failed to send message. Please try again later.',
+      });
+    }
   };
   
   const containerVariants = {
@@ -229,7 +253,17 @@ const Contact = () => {
                   <Button 
                     variant="outline" 
                     className="border-green-500 text-green-600 hover:bg-green-500 hover:text-white"
-                    onClick={() => setFormStatus((prev) => ({ ...prev, submitted: false }))}
+                    onClick={() => {
+                      setFormStatus((prev) => ({ ...prev, submitted: false }));
+                      setFormData({
+                        name: '',
+                        email: '',
+                        phone: '',
+                        subject: '',
+                        message: '',
+                      });
+                      setFocused(null);
+                    }}
                   >
                     Send Another Message
                   </Button>
