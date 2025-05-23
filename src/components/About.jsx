@@ -34,7 +34,13 @@ const About = () => {
       // Animate stat counters - Much faster
       statCounters.current.forEach((counter, index) => {
         const targetValue = getTargetValue(index);
-        animateCounter(counter, targetValue);
+        const label = [
+          "Years of Experience",
+          "Satisfied Travelers",
+          "Unique Destinations",
+          "Local Expertise"
+        ][index];
+        animateCounter(counter, targetValue, label);
       });
     } else {
       controls.start('hidden');
@@ -72,7 +78,7 @@ const About = () => {
   }, []);
   
   // Helper function to animate stat counters - Much faster duration
-  const animateCounter = (element, target) => {
+  const animateCounter = (element, target, label) => {
     if (!element) return;
     
     let start = 0;
@@ -87,12 +93,17 @@ const About = () => {
       const easeOutQuad = progress * (2 - progress);
       const currentValue = Math.floor(easeOutQuad * target);
       
-      element.textContent = currentValue;
+      // Add suffix based on label
+      let suffix = '';
+      if (label === "Local Expertise") suffix = '%';
+      if (label === "Satisfied Travelers" || label === "Years of Experience" || label === "Unique Destinations") suffix = '+';
+      
+      element.textContent = `${currentValue}${suffix}`;
       
       if (progress < 1) {
         requestAnimationFrame(updateCounter);
       } else {
-        element.textContent = target;
+        element.textContent = `${target}${suffix}`;
       }
     };
     
@@ -102,7 +113,7 @@ const About = () => {
   const getTargetValue = (index) => {
     switch (index) {
       case 0: return 10;  // Years of experience
-      case 1: return 1000; // Satisfied travelers
+      case 1: return 100; // Satisfied travelers
       case 2: return 25;  // Unique destinations
       case 3: return 100; // Local expertise
       default: return 0;
@@ -265,7 +276,7 @@ const About = () => {
               }}
             >
               <p className="text-primary text-xs md:text-sm font-medium">Established</p>
-              <p className="text-xl md:text-2xl font-bold">2014</p>
+              <p className="text-xl md:text-2xl font-bold">2008</p>
               <div className="h-1 w-8 md:w-10 bg-secondary mt-1"></div>
             </motion.div>
           </motion.div>
@@ -334,8 +345,6 @@ const About = () => {
                     ref={el => statCounters.current[index] = el}
                   >
                     0
-                    {stat.label === "Local Expertise" && <span className="ml-1">%</span>}
-                    {stat.label === "Satisfied Travelers" && <span className="ml-1">+</span>}
                   </div>
                   <div className="text-gray-700 text-sm">{stat.label}</div>
                   
