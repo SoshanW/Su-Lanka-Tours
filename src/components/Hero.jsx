@@ -496,6 +496,17 @@
             display: none !important;
           }
           
+          /* iOS button optimizations */
+          .ios-hero button {
+            background: transparent !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+          }
+          
+          .ios-hero button:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+          }
+          
           /* Mobile-specific adjustments */
           @media (max-width: 640px) {
             .perspective-text {
