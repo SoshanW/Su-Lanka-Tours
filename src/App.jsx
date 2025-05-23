@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import FullGallery from './pages/FullGallery';
 import Footer from './components/Footer';
 import { useAppContext } from './contexts/AppContext';
+import TripAdvisorButton from './components/ui/TripAdvisorButton';
 
 function App() {
   const [videoEnded, setVideoEnded] = useState(false);
@@ -103,6 +104,7 @@ function App() {
         </Routes>
         <Footer />
       </div>
+      <TripAdvisorButton />
     </>
   );
 }
