@@ -67,7 +67,7 @@ function App() {
   return (
     <>
       <Helmet>
-        <title>Su Lanka Tours | Discover the Pearl of the Indian Ocean</title>
+        <title>Su Lanka Tours - Discover the Pearl of the Indian Ocean</title>
         <meta name="description" content="Experience the beauty of Sri Lanka with Su Lanka Tours. Discover ancient temples, pristine beaches, wildlife, and more with our expert local guides." />
         
         {/* iOS-specific meta tags */}

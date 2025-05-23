@@ -18,7 +18,7 @@ const Home = () => {
   return (
     <>
       <Helmet>
-        <title>Su Lanka Tours | Experience Sri Lanka's Beauty</title>
+        <title>Su Lanka Tours - Experience Sri Lanka's Beauty</title>
         <meta name="description" content="Discover the beauty of Sri Lanka with Su Lanka Tours. We offer customized tours, expert local guides, and unforgettable experiences throughout the island." />
       </Helmet>
       
